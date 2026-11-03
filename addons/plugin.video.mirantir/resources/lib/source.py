@@ -154,14 +154,25 @@ def _index(db_path):
         conn.close()
 
 
-def sync(db_path, state_path, force=False, progress=None, log=lambda *a: None):
-    """Return (changed, info). Downloads only when the .zm3 sha changed."""
+def load_state(state_path):
     try:
         with open(state_path) as f:
-            state = json.load(f)
+            return json.load(f)
     except Exception:
-        state = {}
-    info = discover()
+        return {}
+
+
+def update_required(db_path, state_path, info):
+    """Return whether the local catalogue differs from the remote checksum."""
+    return not (os.path.isfile(db_path)
+                and load_state(state_path).get("sha") == info["sha"])
+
+
+def sync(db_path, state_path, force=False, progress=None, log=lambda *a: None,
+         info=None):
+    """Return (changed, info). Downloads only when the .zm3 sha changed."""
+    state = load_state(state_path)
+    info = info or discover()
     if (not force and os.path.isfile(db_path)
             and state.get("sha") == info["sha"]):
         return False, info

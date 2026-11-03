@@ -132,11 +132,9 @@ def ensure_db(force=False):
         pass
     have = os.path.isfile(DB_PATH)
     if have and not force:
-        if ADDON.getSetting("auto_update") != "true":
-            return True
-        if WIN.getProperty("mirantir_checked") == "1":
-            return True
-        WIN.setProperty("mirantir_checked", "1")
+        # The background service owns scheduled checksum checks. Browsing must
+        # never pause for network I/O or briefly flash a progress dialog.
+        return True
     try:
         changed, info = _do_sync(force)
         if changed:
