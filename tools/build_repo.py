@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ADDONS = ROOT / "addons"
 ZIPS = ROOT / "zips"
+IGNORED_PARTS = {"__pycache__", ".DS_Store"}
 
 
 def addon_details(addon_dir: Path) -> tuple[str, str, Path]:
@@ -36,8 +37,10 @@ def zip_addon(addon_dir: Path, addon_id: str, version: str) -> None:
     output = output_dir / f"{addon_id}-{version}.zip"
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for source in sorted(addon_dir.rglob("*")):
-            if source.is_file():
-                relative = Path(addon_id) / source.relative_to(addon_dir)
+            relative_source = source.relative_to(addon_dir)
+            ignored = any(part in IGNORED_PARTS for part in relative_source.parts)
+            if source.is_file() and not ignored and source.suffix not in {".pyc", ".pyo"}:
+                relative = Path(addon_id) / relative_source
                 info = zipfile.ZipInfo(str(relative).replace("\\", "/"), (1980, 1, 1, 0, 0, 0))
                 info.compress_type = zipfile.ZIP_DEFLATED
                 info.external_attr = 0o100644 << 16
