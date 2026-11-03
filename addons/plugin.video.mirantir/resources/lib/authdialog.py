@@ -22,6 +22,11 @@ C_HEAD, C_QR, C_URL, C_CODE, C_BAR, C_COUNT, C_STATUS, C_CANCEL = \
     100, 101, 102, 103, 104, 105, 106, 500
 
 
+def _tr(addon, string_id, *values):
+    text = addon.getLocalizedString(string_id)
+    return text.format(*values) if values else text
+
+
 def _qr_png(data, path):
     try:
         url = ("https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=10&data="
@@ -44,7 +49,7 @@ class AuthDialog(xbmcgui.WindowXMLDialog):
         self.result = None
         self._stop = False
         self._qr_file = os.path.join(tempfile.gettempdir(), "mirantir_qr.png")
-        self._set(C_HEAD, "Conectar %s" % self.flow.name)
+        self._set(C_HEAD, _tr(self.addon, 32073, self.flow.name))
         self._refresh_display()
         threading.Thread(target=self._worker).start()
 
@@ -69,9 +74,9 @@ class AuthDialog(xbmcgui.WindowXMLDialog):
                 pass
 
     def _refresh_display(self):
-        self._set(C_URL, "Visita:  %s" % self.flow.verify_url)
+        self._set(C_URL, _tr(self.addon, 32074, self.flow.verify_url))
         self._set(C_CODE, str(self.flow.code))
-        self._set(C_STATUS, "Esperando confirmación…")
+        self._set(C_STATUS, _tr(self.addon, 32075))
         self._set_qr()
 
     # ---- worker ---------------------------------------------------------- #
@@ -84,7 +89,7 @@ class AuthDialog(xbmcgui.WindowXMLDialog):
             while not self._stop and time.time() < deadline:
                 left = int(deadline - time.time())
                 self._set_percent(100.0 * left / total)
-                self._set(C_COUNT, "Nuevo código en %ds" % left)
+                self._set(C_COUNT, _tr(self.addon, 32076, left))
                 if time.time() - last_poll >= interval:
                     last_poll = time.time()
                     try:
@@ -94,7 +99,7 @@ class AuthDialog(xbmcgui.WindowXMLDialog):
                     if st == "ok":
                         self.result = getattr(self.flow, "result", None)
                         self._save()
-                        self._set(C_STATUS, "¡Conectado!")
+                        self._set(C_STATUS, _tr(self.addon, 32077))
                         xbmc.sleep(700)
                         self._stop = True
                         self.close()
@@ -104,10 +109,10 @@ class AuthDialog(xbmcgui.WindowXMLDialog):
                 xbmc.sleep(500)
             if self._stop:
                 break
-            self._set(C_STATUS, "Generando un código nuevo…")
+            self._set(C_STATUS, _tr(self.addon, 32078))
             try:
                 if not self.flow.start():
-                    self._set(C_STATUS, "No se pudo generar el código")
+                    self._set(C_STATUS, _tr(self.addon, 32079))
                     xbmc.sleep(2500)
                     break
                 self._refresh_display()
@@ -140,17 +145,17 @@ def run_auth(flow, addon, addon_path):
     """Start a flow and show the dialog. Returns True if tokens were saved."""
     try:
         if not flow.start():
-            xbmcgui.Dialog().notification("Mirantir", "No se pudo iniciar la conexión",
+            xbmcgui.Dialog().notification("Mirantir", _tr(addon, 32080),
                                           xbmcgui.NOTIFICATION_ERROR)
             return False
     except Exception as e:
-        xbmcgui.Dialog().notification("Mirantir", "Error: %s" % e,
+        xbmcgui.Dialog().notification("Mirantir", _tr(addon, 32069, e),
                                       xbmcgui.NOTIFICATION_ERROR)
         return False
     try:
         dlg = AuthDialog("mirantir_auth.xml", addon_path, "Default", "1080i")
     except Exception as e:
-        xbmcgui.Dialog().notification("Mirantir", "No se pudo abrir el diálogo: %s" % e,
+        xbmcgui.Dialog().notification("Mirantir", _tr(addon, 32081, e),
                                       xbmcgui.NOTIFICATION_ERROR)
         return False
     dlg.flow = flow

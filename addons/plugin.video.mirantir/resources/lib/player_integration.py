@@ -13,9 +13,9 @@ PLAYER_NAME = "mirantir.json"
 
 
 def sync_player(addon_path):
-    """Copy only when needed. Return (success, changed, detail)."""
+    """Copy only when needed. Return (success, changed, status/detail)."""
     if not xbmc.getCondVisibility("System.HasAddon(%s)" % TMDBHELPER_ID):
-        return False, False, "TMDb Helper no está instalado"
+        return False, False, "missing"
     source = os.path.join(xbmcvfs.translatePath(addon_path), "resources", "players",
                           PLAYER_NAME)
     destination_dir = xbmcvfs.translatePath(PLAYER_DIR)
@@ -28,12 +28,12 @@ def sync_player(addon_path):
         try:
             with open(destination, "rb") as installed_file:
                 if installed_file.read() == wanted:
-                    return True, False, "El reproductor ya está actualizado"
+                    return True, False, "current"
         except OSError:
             pass
         shutil.copyfile(source, destination)
         xbmc.log("[Mirantir] TMDb Helper player synchronized", xbmc.LOGINFO)
-        return True, True, "Reproductor de TMDb Helper actualizado"
+        return True, True, "updated"
     except Exception as exc:
         xbmc.log("[Mirantir] player synchronization failed: %s" % exc, xbmc.LOGERROR)
         return False, False, str(exc)

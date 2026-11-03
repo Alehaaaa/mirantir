@@ -51,6 +51,11 @@ def _log(*a):
         pass
 
 
+def tr(string_id, *values):
+    text = ADDON.getLocalizedString(string_id)
+    return text.format(*values) if values else text
+
+
 def _int(v, default=0):
     try:
         return int(v)
@@ -99,14 +104,14 @@ def _do_sync(force):
     dlg = None
     try:
         dlg = xbmcgui.DialogProgressBG()
-        dlg.create("Mirantir", "Buscando base de datos…")
+        dlg.create("Mirantir", tr(32020))
     except Exception:
         dlg = None
 
     def prog(got, total):
         try:
             dlg.update(int(got * 100 / total), "Mirantir",
-                       "Descargando catálogo %d/%d MB" % (got >> 20, total >> 20))
+                       tr(32021, got >> 20, total >> 20))
         except Exception:
             pass
     try:
@@ -135,15 +140,15 @@ def ensure_db(force=False):
     try:
         changed, info = _do_sync(force)
         if changed:
-            notify("Catálogo actualizado (%s)" % info.get("name", ""))
+            notify(tr(32022, info.get("name", "")))
         return True
     except Exception as e:
         _log("sync error:", e)
         if not os.path.isfile(DB_PATH):
             xbmcgui.Dialog().ok("Mirantir",
-                                "No se pudo descargar el catálogo:\n%s" % e)
+                                tr(32023, e))
             return False
-        notify("No se pudo comprobar actualizaciones (se usa la copia local)",
+        notify(tr(32024),
                icon=xbmcgui.NOTIFICATION_WARNING)
         return True
 
@@ -154,13 +159,13 @@ def check_update():
     try:
         changed, info = _do_sync(force=False)
     except Exception as e:
-        notify("No se pudo comprobar: %s" % e, icon=xbmcgui.NOTIFICATION_WARNING)
+        notify(tr(32025, e), icon=xbmcgui.NOTIFICATION_WARNING)
         return
     name = info.get("name", "")
     if changed:
-        notify("Catálogo actualizado (%s)" % name)
+        notify(tr(32022, name))
     else:
-        notify("Ya está actualizado (%s)" % name)
+        notify(tr(32026, name))
 
 
 # --------------------------------------------------------------------------- #
@@ -238,19 +243,19 @@ def add_dir(label, params, art=None, info=None, playable=False, folder=True):
 # navigation
 # --------------------------------------------------------------------------- #
 def root():
-    add_dir("[B]Películas[/B]", {"mode": "cats", "type": "movie"})
-    add_dir("[B]Series[/B]", {"mode": "cats", "type": "series"})
-    add_dir("Buscar películas", {"mode": "search", "type": "movie"})
-    add_dir("Buscar series", {"mode": "search", "type": "series"})
-    add_dir("Actualizar base de datos", {"mode": "update"}, folder=False)
+    add_dir("[B]%s[/B]" % tr(32030), {"mode": "cats", "type": "movie"})
+    add_dir("[B]%s[/B]" % tr(32031), {"mode": "cats", "type": "series"})
+    add_dir(tr(32032), {"mode": "search", "type": "movie"})
+    add_dir(tr(32033), {"mode": "search", "type": "series"})
+    add_dir(tr(32012), {"mode": "update"}, folder=False)
     xbmcplugin.endOfDirectory(HANDLE)
 
 
 def cats(mtype):
-    add_dir("Novedades", {"mode": "list", "type": mtype})
+    add_dir(tr(32034), {"mode": "list", "type": mtype})
     for c in (db.MOVIE_CATS if mtype == "movie" else db.SERIES_CATS):
         add_dir(c, {"mode": "list", "type": mtype, "cat": c})
-    add_dir("Por género…", {"mode": "genres", "type": mtype})
+    add_dir(tr(32035), {"mode": "genres", "type": mtype})
     xbmcplugin.endOfDirectory(HANDLE)
 
 
@@ -297,7 +302,7 @@ def listing(mtype, cat=None, genre=None, search=None, offset=0):
         for k in ("cat", "genre", "search"):
             if locals().get(k):
                 nxt[k] = locals()[k]
-        add_dir("[B]Siguiente »[/B]", nxt)
+        add_dir("[B]%s[/B]" % tr(32036), nxt)
     xbmcplugin.endOfDirectory(HANDLE)
 
 
@@ -305,7 +310,7 @@ def seasons(tmdb, title, poster="", fondo=""):
     xbmcplugin.setContent(HANDLE, "seasons")
     art = {"poster": db.img(poster), "fanart": db.img(fondo, "w1280")}
     for s in db.seasons(DB_PATH, tmdb):
-        label = "Especiales" if str(s) == "0" else "Temporada %s" % s
+        label = tr(32037) if str(s) == "0" else tr(32038, s)
         add_dir(label, {"mode": "episodes", "tmdb": tmdb, "season": s,
                         "title": title, "poster": poster, "fondo": fondo},
                 art=art, info={"title": label, "tvshowtitle": title,
@@ -319,7 +324,7 @@ def episodes(tmdb, season, title, poster="", fondo=""):
     show_art = {"fanart": db.img(fondo, "w1280"), "poster": db.img(poster)}
     for e in db.episodes(DB_PATH, tmdb, season):
         m = meta.get(int(e), {})
-        name = m.get("name") or "Episodio %s" % e
+        name = m.get("name") or tr(32039, e)
         label = "%sx%02d · %s" % (season, int(e), name)
         art = dict(show_art)
         if m.get("still"):
@@ -348,9 +353,7 @@ def _links(mtype, tmdb, season=None, episode=None):
 def ensure_debrid_or_auth():
     if debrid.configured(ADDON):
         return True
-    ch = xbmcgui.Dialog().select(
-        "Configura un servicio debrid para reproducir",
-        ["Conectar AllDebrid (QR)", "Conectar RealDebrid (QR)"])
+    ch = xbmcgui.Dialog().select(tr(32040), [tr(32005), tr(32007)])
     if ch < 0:
         return False
     return run_auth_service("ad" if ch == 0 else "rd")
@@ -359,7 +362,7 @@ def ensure_debrid_or_auth():
 def run_auth_service(service):
     ok = authdialog.run_auth(debrid.make_flow(service), ADDON, ADDON_PATH_T)
     if ok:
-        notify("%s conectado" % ("AllDebrid" if service == "ad" else "RealDebrid"))
+        notify(tr(32041, "AllDebrid" if service == "ad" else "RealDebrid"))
     return ok and bool(debrid.configured(ADDON))
 
 
@@ -374,17 +377,17 @@ def _finish_play(direct):
 def _provider_error_summary(errors):
     """Turn debrid API codes into a concise message suitable for Kodi."""
     translations = {
-        "bad_token": "sesión caducada",
-        "expired": "sesión caducada",
-        "hoster_unavailable": "servidor no disponible",
-        "hoster_not_free": "servidor no compatible",
-        "unsupported_link": "enlace no compatible",
-        "traffic_exhausted": "tráfico agotado",
-        "permission_denied": "permiso denegado",
-        "link_host_not_supported": "servidor no compatible",
-        "link_down": "enlace caído",
-        "free_trial_limit_reached": "límite de cuenta alcanzado",
-        "auth_missing_apikey": "sesión no válida",
+        "bad_token": 32060,
+        "expired": 32060,
+        "hoster_unavailable": 32061,
+        "hoster_not_free": 32062,
+        "unsupported_link": 32063,
+        "traffic_exhausted": 32064,
+        "permission_denied": 32065,
+        "link_host_not_supported": 32062,
+        "link_down": 32066,
+        "free_trial_limit_reached": 32067,
+        "auth_missing_apikey": 32068,
     }
     readable = []
     for combined in errors:
@@ -395,7 +398,8 @@ def _provider_error_summary(errors):
             provider, sep, reason = entry.partition(":")
             provider = {"ad": "AllDebrid", "rd": "RealDebrid"}.get(provider, provider)
             reason = reason.strip()
-            friendly = translations.get(reason.lower(), reason.replace("_", " "))
+            string_id = translations.get(reason.lower())
+            friendly = tr(string_id) if string_id else reason.replace("_", " ")
             readable.append("%s: %s" % (provider, friendly) if sep else friendly)
     return "; ".join(sorted(set(readable)))
 
@@ -408,7 +412,7 @@ def _play_from(rows):
     dlg = None
     try:
         dlg = xbmcgui.DialogProgressBG()
-        dlg.create("Mirantir", "Resolviendo…")
+        dlg.create("Mirantir", tr(32042))
     except Exception:
         dlg = None
     try:
@@ -417,7 +421,7 @@ def _play_from(rows):
             try:
                 if dlg:
                     dlg.update(int(i * 100 / total), "Mirantir",
-                               "Probando %s…" % (cal or "fuente"))
+                               tr(32043, cal or tr(32044)))
             except Exception:
                 pass
             try:
@@ -440,19 +444,16 @@ def _play_from(rows):
         except Exception:
             pass
     if decrypted == 0:
-        message = ("Fuentes no válidas: se encontraron %d, pero ninguna pudo "
-                   "descifrarse." % attempted)
+        message = tr(32045, attempted)
     elif provider_errors:
         details = _provider_error_summary(provider_errors)
         if len(details) > 110:
             details = details[:107] + "…"
-        message = ("No disponible: todos los proveedores rechazaron las fuentes "
-                   "(%d/%d). %s" % (decrypted, attempted, details))
+        message = tr(32046, decrypted, attempted, details)
         if "infring" in details.lower():
-            message += " Prueba AllDebrid."
+            message += " " + tr(32047)
     else:
-        message = ("No disponible: se probaron %d fuentes, pero ninguna devolvió "
-                   "un enlace reproducible." % attempted)
+        message = tr(32048, attempted)
     _log("playback failed:", message)
     notify(message, icon=xbmcgui.NOTIFICATION_ERROR, ms=10000)
     return False
@@ -460,23 +461,22 @@ def _play_from(rows):
 
 def resolve_and_play(mtype, tmdb, season=None, episode=None):
     if tmdb is None or tmdb < 0:
-        notify("Identificador no válido", icon=xbmcgui.NOTIFICATION_WARNING)
+        notify(tr(32049), icon=xbmcgui.NOTIFICATION_WARNING)
         return _fail_resolve()
     try:
         rows = _links(mtype, tmdb, season, episode)
     except Exception as e:
         _log("links error:", e)
-        notify("No se pudo consultar el catálogo local: %s" % e,
+        notify(tr(32050, e),
                icon=xbmcgui.NOTIFICATION_ERROR, ms=8000)
         return _fail_resolve()
     if not rows:
-        target = ("esta película" if mtype == "movie" else
-                  "este episodio (T%s E%s)" % (season, episode))
-        notify("No disponible: Mirantir no tiene fuentes para %s." % target,
+        target = tr(32051) if mtype == "movie" else tr(32052, season, episode)
+        notify(tr(32053, target),
                icon=xbmcgui.NOTIFICATION_WARNING, ms=8000)
         return _fail_resolve()
     if not ensure_debrid_or_auth():
-        notify("Reproducción cancelada: no hay un servicio debrid conectado.",
+        notify(tr(32054),
                icon=xbmcgui.NOTIFICATION_WARNING, ms=7000)
         return _fail_resolve()
 
@@ -487,9 +487,9 @@ def resolve_and_play(mtype, tmdb, season=None, episode=None):
 
     # chooser popup
     labels = [quality.label(c, a, i) for (_, c, a, i) in rows]
-    idx = xbmcgui.Dialog().select("Elige versión", labels)
+    idx = xbmcgui.Dialog().select(tr(32055), labels)
     if idx < 0:
-        notify("Reproducción cancelada: no seleccionaste una fuente.",
+        notify(tr(32056),
                icon=xbmcgui.NOTIFICATION_INFO, ms=5000)
         return _fail_resolve()
     ordered = [rows[idx]] + [r for j, r in enumerate(rows) if j != idx]
@@ -501,7 +501,8 @@ def resolve_and_play(mtype, tmdb, season=None, episode=None):
 # misc
 # --------------------------------------------------------------------------- #
 def search(mtype):
-    kb = xbmc.Keyboard("", "Buscar %s" % ("películas" if mtype == "movie" else "series"))
+    media = tr(32030).lower() if mtype == "movie" else tr(32031).lower()
+    kb = xbmc.Keyboard("", tr(32057, media))
     kb.doModal()
     if kb.isConfirmed() and kb.getText().strip():
         listing(mtype, search=kb.getText().strip())
@@ -510,11 +511,13 @@ def search(mtype):
 def install_player():
     ok, changed, detail = player_integration.sync_player(ADDON_PATH)
     if ok:
-        suffix = ("\n\nEn Arctic Horizon / Arctic Fuse, abre un título, pulsa "
-                  "reproducir y elige [B]Mirantir[/B].")
+        detail = tr(32070 if detail == "updated" else 32071)
+        suffix = "\n\n" + tr(32058)
         xbmcgui.Dialog().ok("Mirantir", detail + suffix)
     else:
-        xbmcgui.Dialog().ok("Mirantir", "No se pudo configurar TMDb Helper:\n%s" % detail)
+        if detail == "missing":
+            detail = tr(32072)
+        xbmcgui.Dialog().ok("Mirantir", tr(32059, detail))
 
 
 # --------------------------------------------------------------------------- #
@@ -534,7 +537,7 @@ def run():
     except Exception as e:
         import traceback
         _log("dispatch error:", e, traceback.format_exc())
-        notify("Error: %s" % e, icon=xbmcgui.NOTIFICATION_ERROR, ms=6000)
+        notify(tr(32069, e), icon=xbmcgui.NOTIFICATION_ERROR, ms=6000)
         if mode in ("resolve", "players"):
             _fail_resolve()
         elif HANDLE > 0:

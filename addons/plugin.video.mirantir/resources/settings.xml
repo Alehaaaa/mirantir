@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
-  <category label="Reproductor">
+  <category label="32000">
     <setting id="autoplay" type="bool"
-             label="Reproducción automática (mejor fuente)" default="false"/>
-    <setting id="enable_4k" type="bool" label="Habilitar 4K" default="true"/>
+             label="32001" default="false"/>
+    <setting id="enable_4k" type="bool" label="32002" default="true"/>
     <setting id="enable_dv" type="bool"
-             label="Habilitar Dolby Vision (DV)" default="false"/>
+             label="32003" default="false"/>
   </category>
-  <category label="Debrid">
-    <setting type="action" label="Conectar AllDebrid (QR)"
+  <category label="32004">
+    <setting type="action" label="32005"
              action="RunPlugin(plugin://plugin.video.mirantir/?mode=auth&amp;service=ad)"/>
-    <setting id="ad_token" type="text" label="AllDebrid API key" default=""/>
+    <setting id="ad_token" type="text" label="32006" default=""/>
     <setting type="sep"/>
-    <setting type="action" label="Conectar RealDebrid (QR)"
+    <setting type="action" label="32007"
              action="RunPlugin(plugin://plugin.video.mirantir/?mode=auth&amp;service=rd)"/>
-    <setting id="rd_token" type="text" label="RealDebrid token" default=""/>
+    <setting id="rd_token" type="text" label="32008" default=""/>
     <setting id="rd_refresh" type="text" label="" default="" visible="false"/>
     <setting id="rd_client_id" type="text" label="" default="" visible="false"/>
     <setting id="rd_client_secret" type="text" label="" default="" visible="false"/>
   </category>
-  <category label="Catálogo">
+  <category label="32009">
     <setting id="auto_update" type="bool"
-             label="Comprobar actualizaciones al iniciar sesión" default="true"/>
-    <setting id="page_size" type="slider" label="Elementos por página"
+             label="32010" default="true"/>
+    <setting id="page_size" type="slider" label="32011"
              default="60" range="20,20,200" option="int"/>
-    <setting type="action" label="Actualizar base de datos ahora"
+    <setting type="action" label="32012"
              action="RunPlugin(plugin://plugin.video.mirantir/?mode=update)"/>
-    <setting type="action" label="Reparar reproductor TMDb Helper"
+    <setting type="action" label="32013"
              action="RunPlugin(plugin://plugin.video.mirantir/?mode=install_player)"/>
   </category>
 </settings>

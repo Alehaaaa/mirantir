@@ -88,6 +88,10 @@ def main() -> int:
     addon_xml_documents: list[bytes] = []
     packages: list[Path] = []
     ZIPS.mkdir(exist_ok=True)
+    addon_icon = ADDONS / "plugin.video.mirantir" / "icon.png"
+    repository_icon = ADDONS / "repository.mirantir" / "icon.png"
+    if addon_icon.is_file() and repository_icon.parent.is_dir():
+        shutil.copyfile(addon_icon, repository_icon)
     addon_dirs = sorted(path for path in ADDONS.iterdir() if path.is_dir())
     if not addon_dirs:
         raise SystemExit("No add-ons found")
