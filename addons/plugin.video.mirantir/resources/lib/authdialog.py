@@ -49,14 +49,14 @@ class AuthDialog(xbmcgui.WindowXMLDialog):
         self.result = None
         self._stop = False
         self._qr_file = os.path.join(tempfile.gettempdir(), "mirantir_qr.png")
-        self._set(C_HEAD, _tr(self.addon, 32073, self.flow.name))
+        self._set(C_HEAD, _tr(self.addon, 32073, self.flow.name), bold=True)
         self._refresh_display()
         threading.Thread(target=self._worker).start()
 
     # ---- helpers --------------------------------------------------------- #
-    def _set(self, cid, text):
+    def _set(self, cid, text, bold=False):
         try:
-            self.getControl(cid).setLabel(text)
+            self.getControl(cid).setLabel("[B]%s[/B]" % text if bold else text)
         except Exception:
             pass
 
@@ -75,7 +75,7 @@ class AuthDialog(xbmcgui.WindowXMLDialog):
 
     def _refresh_display(self):
         self._set(C_URL, _tr(self.addon, 32074, self.flow.verify_url))
-        self._set(C_CODE, str(self.flow.code))
+        self._set(C_CODE, str(self.flow.code), bold=True)
         self._set(C_STATUS, _tr(self.addon, 32075))
         self._set_qr()
 
