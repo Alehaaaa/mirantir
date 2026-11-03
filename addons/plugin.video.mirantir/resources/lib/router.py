@@ -9,6 +9,7 @@ mutual fallbacks. Self-contained — no external server.
 
 import json
 import os
+import re
 import sys
 import urllib.parse
 
@@ -229,6 +230,12 @@ def add_dir(label, params, art=None, info=None, playable=False, folder=True):
             pass
     if info:
         _set_info(li, info)
+    elif label:
+        # Some skins, including Arctic Fuse 3, render ListItem.Title rather
+        # than ListItem.Label in folder views. Populate both consistently.
+        title = re.sub(r"\[/?(?:B|I|COLOR(?: [^\]]+)?)\]", "", label,
+                       flags=re.IGNORECASE)
+        _set_info(li, {"title": title})
     if playable:
         li.setProperty("IsPlayable", "true")
     try:
