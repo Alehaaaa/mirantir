@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 """Maintain Mirantir's player integration and local catalogue in the background."""
 
-import json
 import os
 import sys
-import time
 
 import xbmc
 import xbmcaddon
@@ -34,17 +32,6 @@ def tr(string_id, *values):
     return text.format(*values) if values else text
 
 
-def last_check():
-    return float(source.load_state(STATE_PATH).get("last_check", 0))
-
-
-def save_last_check(checked_at):
-    state = source.load_state(STATE_PATH)
-    state["last_check"] = checked_at
-    with open(STATE_PATH, "w") as state_file:
-        json.dump(state, state_file)
-
-
 def update_catalogue(show_progress=False):
     """Check quietly; show progress only for a real startup download."""
     if ADDON.getSetting("auto_update") != "true":
@@ -52,7 +39,6 @@ def update_catalogue(show_progress=False):
     os.makedirs(PROFILE, exist_ok=True)
     info = source.discover()
     if not source.update_required(DB_PATH, STATE_PATH, info):
-        save_last_check(time.time())
         return
 
     dialog = None
@@ -67,7 +53,6 @@ def update_catalogue(show_progress=False):
 
     try:
         source.sync(DB_PATH, STATE_PATH, progress=progress, log=log, info=info)
-        save_last_check(time.time())
     finally:
         if dialog:
             dialog.close()
@@ -77,20 +62,13 @@ def run():
     sync_player(ADDON.getAddonInfo("path"))
     monitor = xbmc.Monitor()
     startup = True
-    next_check = last_check() + CHECK_INTERVAL
-    if not os.path.isfile(DB_PATH):
-        next_check = 0
     while not monitor.abortRequested():
-        now = time.time()
-        if now >= next_check:
-            try:
-                update_catalogue(show_progress=startup)
-            except Exception as exc:
-                log("catalogue update failed:", exc)
-            next_check = time.time() + CHECK_INTERVAL
+        try:
+            update_catalogue(show_progress=startup)
+        except Exception as exc:
+            log("catalogue update failed:", exc)
         startup = False
-        wait = max(1, min(CHECK_INTERVAL, next_check - time.time()))
-        if monitor.waitForAbort(wait):
+        if monitor.waitForAbort(CHECK_INTERVAL):
             break
 
 
