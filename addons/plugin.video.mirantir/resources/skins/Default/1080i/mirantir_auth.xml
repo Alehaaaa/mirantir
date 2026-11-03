@@ -15,7 +15,7 @@
       </control>
       <control type="label" id="100">
         <left>20</left><top>30</top><width>560</width><height>50</height>
-        <align>center</align><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
+        <align>center</align><font>font45</font><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
         <label>[B]$LOCALIZE[32082][/B]</label>
       </control>
       <control type="image" id="101">
@@ -24,11 +24,11 @@
       </control>
       <control type="label" id="102">
         <left>20</left><top>420</top><width>560</width><height>40</height>
-        <align>center</align><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
+        <align>center</align><font>font14</font><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
       </control>
       <control type="label" id="103">
         <left>20</left><top>468</top><width>560</width><height>60</height>
-        <align>center</align><textcolor>FFFFD400</textcolor><shadowcolor>FF000000</shadowcolor>
+        <align>center</align><font>font45</font><textcolor>FFFFD400</textcolor><shadowcolor>FF000000</shadowcolor>
       </control>
       <control type="progress" id="104">
         <left>60</left><top>560</top><width>480</width><height>22</height>
@@ -40,17 +40,17 @@
       </control>
       <control type="label" id="105">
         <left>20</left><top>596</top><width>560</width><height>40</height>
-        <align>center</align><textcolor>FF66CCFF</textcolor><shadowcolor>FF000000</shadowcolor>
+        <align>center</align><font>font14</font><textcolor>FF66CCFF</textcolor><shadowcolor>FF000000</shadowcolor>
       </control>
       <control type="label" id="106">
         <left>20</left><top>644</top><width>560</width><height>40</height>
-        <align>center</align><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
+        <align>center</align><font>font13</font><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
         <label>$LOCALIZE[32075]</label>
       </control>
       <control type="button" id="500">
         <left>200</left><top>720</top><width>200</width><height>60</height>
         <align>center</align><aligny>center</aligny>
-        <textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
+        <font>font14</font><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
         <label>[B]$LOCALIZE[222][/B]</label>
         <texturefocus border="2">button.png</texturefocus>
         <texturenofocus border="2">panel.png</texturenofocus>
