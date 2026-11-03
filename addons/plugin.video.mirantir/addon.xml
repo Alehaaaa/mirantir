@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.mirantir" name="Mirantir" version="1.2.1" provider-name="aleha">
+<addon id="plugin.video.mirantir" name="Mirantir" version="1.2.2" provider-name="aleha">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
   <extension point="xbmc.python.pluginsource" library="default.py">
     <provides>video</provides>
   </extension>
+  <extension point="xbmc.service" library="service.py" start="startup"/>
   <extension point="xbmc.addon.metadata">
     <summary lang="en">Mirantir catalogue, queried locally</summary>
     <summary lang="es">Catálogo Mirantir, consultado localmente</summary>

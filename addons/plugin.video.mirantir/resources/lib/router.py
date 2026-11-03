@@ -9,7 +9,6 @@ mutual fallbacks. Self-contained — no external server.
 
 import json
 import os
-import shutil
 import sys
 import urllib.parse
 
@@ -26,6 +25,7 @@ import quality
 import source
 import tmdb as tmdbapi
 import authdialog
+import player_integration
 
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo("id")
@@ -38,8 +38,6 @@ PROFILE = xbmcvfs.translatePath("special://profile/addon_data/%s/" % ADDON_ID)
 DB_PATH = os.path.join(PROFILE, "moria.cm3")
 STATE_PATH = os.path.join(PROFILE, "state.json")
 ADDON_PATH_T = xbmcvfs.translatePath(ADDON_PATH)
-TMDBH_PLAYERS = "special://profile/addon_data/plugin.video.themoviedb.helper/players/"
-
 WIN = xbmcgui.Window(10000)
 
 
@@ -510,22 +508,13 @@ def search(mtype):
 
 
 def install_player():
-    dest_dir = xbmcvfs.translatePath(TMDBH_PLAYERS)
-    src = os.path.join(xbmcvfs.translatePath(ADDON_PATH), "resources", "players",
-                       "mirantir.json")
-    try:
-        if not xbmcvfs.exists(TMDBH_PLAYERS):
-            xbmcvfs.mkdirs(TMDBH_PLAYERS)
-        shutil.copyfile(src, os.path.join(dest_dir, "mirantir.json"))
-        xbmcgui.Dialog().ok(
-            "Mirantir",
-            "Reproductor instalado para TMDBHelper.\n\n"
-            "En Arctic Horizon / Arctic Fuse abre una película o episodio, pulsa "
-            "reproducir y elige [B]Mirantir[/B].")
-    except Exception as e:
-        xbmcgui.Dialog().ok("Mirantir",
-                            "No se pudo instalar el reproductor:\n%s\n\n"
-                            "¿Está instalado TMDBHelper?" % e)
+    ok, changed, detail = player_integration.sync_player(ADDON_PATH)
+    if ok:
+        suffix = ("\n\nEn Arctic Horizon / Arctic Fuse, abre un título, pulsa "
+                  "reproducir y elige [B]Mirantir[/B].")
+        xbmcgui.Dialog().ok("Mirantir", detail + suffix)
+    else:
+        xbmcgui.Dialog().ok("Mirantir", "No se pudo configurar TMDb Helper:\n%s" % detail)
 
 
 # --------------------------------------------------------------------------- #

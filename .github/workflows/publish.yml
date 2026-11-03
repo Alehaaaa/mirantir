@@ -29,6 +29,8 @@ jobs:
           python-version: "3.x"
       - name: Build Kodi repository
         run: python tools/build_repo.py
+      - name: Validate add-on integration
+        run: python tools/check_addon.py
       - name: Validate packages and metadata
         run: python tools/check_repo.py
       - name: Publish generated update files

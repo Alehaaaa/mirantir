@@ -16,6 +16,8 @@ jobs:
           python-version: "3.x"
       - name: Rebuild repository
         run: python tools/build_repo.py
+      - name: Validate add-on integration
+        run: python tools/check_addon.py
       - name: Verify generated files are current
         run: git diff --exit-code
       - name: Validate packages and metadata

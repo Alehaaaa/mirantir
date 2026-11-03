@@ -26,7 +26,7 @@
              default="60" range="20,20,200" option="int"/>
     <setting type="action" label="Actualizar base de datos ahora"
              action="RunPlugin(plugin://plugin.video.mirantir/?mode=update)"/>
-    <setting type="action" label="Instalar reproductor TMDBHelper (Arctic Horizon)"
+    <setting type="action" label="Reparar reproductor TMDb Helper"
              action="RunPlugin(plugin://plugin.video.mirantir/?mode=install_player)"/>
   </category>
 </settings>
