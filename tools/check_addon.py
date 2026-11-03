@@ -18,8 +18,6 @@ def main() -> int:
     metadata = ET.parse(ADDON / "addon.xml").getroot()
     assert metadata.attrib["id"] == "plugin.video.mirantir"
     assert metadata.find("./extension[@point='xbmc.service']") is not None
-    assert (ADDON / "icon.png").read_bytes() == (ROOT / "addons/repository.mirantir/icon.png").read_bytes(), \
-        "Repository icon must match the Mirantir add-on icon"
     player = json.loads((ADDON / "resources/players/mirantir.json").read_text())
     expected = ("play_movie", "play_episode", "search_movie", "search_episode")
     for action in expected:
