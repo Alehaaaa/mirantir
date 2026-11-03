@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Read-only queries against the local Palantir catalogue (moria.cm3)."""
+"""Read-only queries against the local Mirantir catalogue (moria.cm3)."""
 
 import sqlite3
 

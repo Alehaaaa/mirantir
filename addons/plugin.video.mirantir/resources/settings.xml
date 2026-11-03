@@ -9,11 +9,11 @@
   </category>
   <category label="Debrid">
     <setting type="action" label="Conectar AllDebrid (QR)"
-             action="RunPlugin(plugin://plugin.video.palantir.local/?mode=auth&amp;service=ad)"/>
+             action="RunPlugin(plugin://plugin.video.mirantir/?mode=auth&amp;service=ad)"/>
     <setting id="ad_token" type="text" label="AllDebrid API key" default=""/>
     <setting type="sep"/>
     <setting type="action" label="Conectar RealDebrid (QR)"
-             action="RunPlugin(plugin://plugin.video.palantir.local/?mode=auth&amp;service=rd)"/>
+             action="RunPlugin(plugin://plugin.video.mirantir/?mode=auth&amp;service=rd)"/>
     <setting id="rd_token" type="text" label="RealDebrid token" default=""/>
     <setting id="rd_refresh" type="text" label="" default="" visible="false"/>
     <setting id="rd_client_id" type="text" label="" default="" visible="false"/>
@@ -25,8 +25,8 @@
     <setting id="page_size" type="slider" label="Elementos por página"
              default="60" range="20,20,200" option="int"/>
     <setting type="action" label="Actualizar base de datos ahora"
-             action="RunPlugin(plugin://plugin.video.palantir.local/?mode=update)"/>
+             action="RunPlugin(plugin://plugin.video.mirantir/?mode=update)"/>
     <setting type="action" label="Instalar reproductor TMDBHelper (Arctic Horizon)"
-             action="RunPlugin(plugin://plugin.video.palantir.local/?mode=install_player)"/>
+             action="RunPlugin(plugin://plugin.video.mirantir/?mode=install_player)"/>
   </category>
 </settings>

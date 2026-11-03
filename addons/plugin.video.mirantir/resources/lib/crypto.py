@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-palantir_crypto.py — decrypt Palantir 3 stream links (pure-Python, no deps).
+crypto.py — decrypt Mirantir stream links (pure-Python, no deps).
 
 Each enlaces_*.link value is AES-256-OFB encrypted (with a hardcoded key found
 in the addon's libs/ioI1I1ii1 module) of a https://1fichier.com/?... URL:

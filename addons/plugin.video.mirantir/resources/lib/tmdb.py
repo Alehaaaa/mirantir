@@ -9,7 +9,7 @@ import urllib.request
 KEY = "a79d70765e78bc6b322fb6f81bb6659d"
 BASE = "https://api.themoviedb.org/3"
 IMG = "https://image.tmdb.org/t/p/"
-UA = "palantir-local/1.0"
+UA = "mirantir/1.0"
 
 _season_cache = {}   # (tmdb, season) -> {episode_number: {...}}
 

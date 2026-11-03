@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="repository.mirantir" name="Mirantir" version="1.0.0" provider-name="aleha">
+  <extension point="xbmc.addon.repository" name="Mirantir">
+    <dir>
+      <info compressed="false">https://alehaaaa.github.io/mirantir/addons.xml</info>
+      <checksum>https://alehaaaa.github.io/mirantir/addons.xml.md5</checksum>
+      <datadir zip="true">https://alehaaaa.github.io/mirantir/zips/</datadir>
+    </dir>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en">Mirantir Kodi repository</summary>
+    <summary lang="es">Repositorio Kodi Mirantir</summary>
+    <description lang="en">Install Mirantir and receive automatic updates through Kodi.</description>
+    <description lang="es">Instala Mirantir y recibe actualizaciones automáticas mediante Kodi.</description>
+    <platform>all</platform>
+    <license>Personal use</license>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+  </extension>
+</addon>

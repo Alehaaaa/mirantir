@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Quality parsing / filtering for Palantir links.
+"""Quality parsing / filtering for Mirantir links.
 
-Palantir serves three main tiers in the `calidad` field:
+Mirantir serves three main tiers in the `calidad` field:
   * Dolby Vision  -> contains "DV"   (DV, DV HDR10, DV HDR10+, ...)
   * 4K            -> contains "4K"   (4K, 4K HDR10, ...)
   * the rest      -> 1080p / HD / SD

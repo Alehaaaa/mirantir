@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Palantir Local — Kodi router.
+"""Mirantir — Kodi router.
 
 Native browsing (Movies / Series / Search) from a local SQLite catalogue, plus
 TMDBHelper "Players" for Arctic Horizon / Arctic Fuse. Quality filtering (DV/4K
@@ -37,7 +37,7 @@ PARAMS = dict(urllib.parse.parse_qsl(sys.argv[2][1:])) if len(sys.argv) > 2 else
 PROFILE = xbmcvfs.translatePath("special://profile/addon_data/%s/" % ADDON_ID)
 DB_PATH = os.path.join(PROFILE, "moria.cm3")
 STATE_PATH = os.path.join(PROFILE, "state.json")
-BG_PATH = os.path.join(xbmcvfs.translatePath(ADDON_PATH), "resources", "media", "bg.png")
+ADDON_PATH_T = xbmcvfs.translatePath(ADDON_PATH)
 TMDBH_PLAYERS = "special://profile/addon_data/plugin.video.themoviedb.helper/players/"
 
 WIN = xbmcgui.Window(10000)
@@ -48,7 +48,7 @@ WIN = xbmcgui.Window(10000)
 # --------------------------------------------------------------------------- #
 def _log(*a):
     try:
-        xbmc.log("[PalantirLocal] " + " ".join(str(x) for x in a), xbmc.LOGINFO)
+        xbmc.log("[Mirantir] " + " ".join(str(x) for x in a), xbmc.LOGINFO)
     except Exception:
         pass
 
@@ -75,7 +75,7 @@ def page_size():
     return _int(ADDON.getSetting("page_size") or "60", 60)
 
 
-def notify(msg, heading="Palantir Local", icon=xbmcgui.NOTIFICATION_INFO, ms=4000):
+def notify(msg, heading="Mirantir", icon=xbmcgui.NOTIFICATION_INFO, ms=4000):
     try:
         xbmcgui.Dialog().notification(heading, msg, icon, ms)
     except Exception:
@@ -101,13 +101,13 @@ def _do_sync(force):
     dlg = None
     try:
         dlg = xbmcgui.DialogProgressBG()
-        dlg.create("Palantir Local", "Buscando base de datos…")
+        dlg.create("Mirantir", "Buscando base de datos…")
     except Exception:
         dlg = None
 
     def prog(got, total):
         try:
-            dlg.update(int(got * 100 / total), "Palantir Local",
+            dlg.update(int(got * 100 / total), "Mirantir",
                        "Descargando catálogo %d/%d MB" % (got >> 20, total >> 20))
         except Exception:
             pass
@@ -131,9 +131,9 @@ def ensure_db(force=False):
     if have and not force:
         if ADDON.getSetting("auto_update") != "true":
             return True
-        if WIN.getProperty("palantir_checked") == "1":
+        if WIN.getProperty("mirantir_checked") == "1":
             return True
-        WIN.setProperty("palantir_checked", "1")
+        WIN.setProperty("mirantir_checked", "1")
     try:
         changed, info = _do_sync(force)
         if changed:
@@ -142,7 +142,7 @@ def ensure_db(force=False):
     except Exception as e:
         _log("sync error:", e)
         if not os.path.isfile(DB_PATH):
-            xbmcgui.Dialog().ok("Palantir Local",
+            xbmcgui.Dialog().ok("Mirantir",
                                 "No se pudo descargar el catálogo:\n%s" % e)
             return False
         notify("No se pudo comprobar actualizaciones (se usa la copia local)",
@@ -151,19 +151,18 @@ def ensure_db(force=False):
 
 
 def check_update():
-    """Manual update: download only if the remote hash differs from local."""
+    """Manual update: download only if the remote hash differs from local.
+    Reports via notification only (no popup)."""
     try:
         changed, info = _do_sync(force=False)
     except Exception as e:
-        xbmcgui.Dialog().ok("Palantir Local", "No se pudo comprobar:\n%s" % e)
+        notify("No se pudo comprobar: %s" % e, icon=xbmcgui.NOTIFICATION_WARNING)
         return
     name = info.get("name", "")
     if changed:
-        xbmcgui.Dialog().ok("Palantir Local", "Catálogo actualizado a:\n[B]%s[/B]" % name)
+        notify("Catálogo actualizado (%s)" % name)
     else:
-        xbmcgui.Dialog().ok("Palantir Local",
-                            "Ya está actualizado.\n[B]%s[/B]\n\n"
-                            "El hash local coincide con el remoto." % name)
+        notify("Ya está actualizado (%s)" % name)
 
 
 # --------------------------------------------------------------------------- #
@@ -360,7 +359,7 @@ def ensure_debrid_or_auth():
 
 
 def run_auth_service(service):
-    ok = authdialog.run_auth(debrid.make_flow(service), ADDON, BG_PATH)
+    ok = authdialog.run_auth(debrid.make_flow(service), ADDON, ADDON_PATH_T)
     if ok:
         notify("%s conectado" % ("AllDebrid" if service == "ad" else "RealDebrid"))
     return ok and bool(debrid.configured(ADDON))
@@ -380,7 +379,7 @@ def _play_from(rows):
     dlg = None
     try:
         dlg = xbmcgui.DialogProgressBG()
-        dlg.create("Palantir", "Resolviendo…")
+        dlg.create("Mirantir", "Resolviendo…")
     except Exception:
         dlg = None
     try:
@@ -388,7 +387,7 @@ def _play_from(rows):
         for i, (link, cal, aud, inf) in enumerate(rows[:15], 1):
             try:
                 if dlg:
-                    dlg.update(int(i * 100 / total), "Palantir",
+                    dlg.update(int(i * 100 / total), "Mirantir",
                                "Probando %s…" % (cal or "fuente"))
             except Exception:
                 pass
@@ -460,18 +459,18 @@ def search(mtype):
 def install_player():
     dest_dir = xbmcvfs.translatePath(TMDBH_PLAYERS)
     src = os.path.join(xbmcvfs.translatePath(ADDON_PATH), "resources", "players",
-                       "palantir.json")
+                       "mirantir.json")
     try:
         if not xbmcvfs.exists(TMDBH_PLAYERS):
             xbmcvfs.mkdirs(TMDBH_PLAYERS)
-        shutil.copyfile(src, os.path.join(dest_dir, "palantir.json"))
+        shutil.copyfile(src, os.path.join(dest_dir, "mirantir.json"))
         xbmcgui.Dialog().ok(
-            "Palantir Local",
+            "Mirantir",
             "Reproductor instalado para TMDBHelper.\n\n"
             "En Arctic Horizon / Arctic Fuse abre una película o episodio, pulsa "
-            "reproducir y elige [B]Palantir Local[/B].")
+            "reproducir y elige [B]Mirantir[/B].")
     except Exception as e:
-        xbmcgui.Dialog().ok("Palantir Local",
+        xbmcgui.Dialog().ok("Mirantir",
                             "No se pudo instalar el reproductor:\n%s\n\n"
                             "¿Está instalado TMDBHelper?" % e)
 

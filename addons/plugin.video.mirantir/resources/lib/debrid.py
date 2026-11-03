@@ -16,7 +16,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-UA = "palantir_local"
+UA = "mirantir"
 RD_CLIENT_ID = "X245A4XAIBGVM"   # public open-source RealDebrid client id
 RD_API = "https://api.real-debrid.com"
 AD_API = "https://api.alldebrid.com/v4"

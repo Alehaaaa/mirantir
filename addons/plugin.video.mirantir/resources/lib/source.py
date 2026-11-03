@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Fetch & keep the Palantir catalogue DB (moria.cm3) up to date, on-device.
+"""Fetch & keep the Mirantir catalogue DB (moria.cm3) up to date, on-device.
 
 Self-contained (stdlib only). Mirrors the addon's own distribution logic:
 the DB is published as moria_<ver>.zm3 in a GitHub repo — a ZIP whose 42-byte
@@ -23,7 +23,7 @@ ADDON_REPO_XML = ADDON_HOST + "/Repo/addons.xml"
 ADDON_ID = "plugin.video.palantir3"
 ZIP_HEADER = base64.b64decode(
     b"UEsDBBQAAAAIAKJchVngR+RlsfTRAQBwSwUMAAAAc2V0dGluZ3MueG1s")
-UA = "palantir-local/1.0"
+UA = "mirantir/1.0"
 
 
 def _json(url):
