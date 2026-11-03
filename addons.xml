@@ -19,12 +19,12 @@
     </assets>
   </extension>
 </addon>
-<addon id="repository.mirantir" name="Mirantir" version="1.0.0" provider-name="aleha">
+<addon id="repository.mirantir" name="Mirantir" version="1.0.1" provider-name="aleha">
   <extension point="xbmc.addon.repository" name="Mirantir">
     <dir>
-      <info compressed="false">https://alehaaaa.github.io/mirantir/addons.xml</info>
-      <checksum>https://alehaaaa.github.io/mirantir/addons.xml.md5</checksum>
-      <datadir zip="true">https://alehaaaa.github.io/mirantir/zips/</datadir>
+      <info compressed="false">https://raw.githubusercontent.com/Alehaaaa/mirantir/main/addons.xml</info>
+      <checksum>https://raw.githubusercontent.com/Alehaaaa/mirantir/main/addons.xml.md5</checksum>
+      <datadir zip="true">https://raw.githubusercontent.com/Alehaaaa/mirantir/main/zips/</datadir>
     </dir>
   </extension>
   <extension point="xbmc.addon.metadata">
