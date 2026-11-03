@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """Maintain Mirantir's player integration and local catalogue in the background."""
 
+import json
 import os
 import sys
+import time
 
 import xbmc
 import xbmcaddon
@@ -17,7 +19,6 @@ if LIB not in sys.path:
 from player_integration import sync_player  # noqa: E402
 import source  # noqa: E402
 
-CHECK_INTERVAL = 12 * 60 * 60
 PROFILE = xbmcvfs.translatePath(ADDON.getAddonInfo("profile"))
 DB_PATH = os.path.join(PROFILE, "moria.cm3")
 STATE_PATH = os.path.join(PROFILE, "state.json")
@@ -32,6 +33,31 @@ def tr(string_id, *values):
     return text.format(*values) if values else text
 
 
+def latest_check_boundary(now=None):
+    """Return the latest local 08:00 or 20:00 boundary as a timestamp."""
+    now = time.time() if now is None else now
+    local = time.localtime(now)
+    hour = 20 if local.tm_hour >= 20 else 8
+    day = local.tm_mday
+    if local.tm_hour < 8:
+        day -= 1
+        hour = 20
+    return time.mktime((local.tm_year, local.tm_mon, day, hour, 0, 0,
+                        0, 0, -1))
+
+
+def check_due():
+    state = source.load_state(STATE_PATH)
+    return float(state.get("last_check", 0)) < latest_check_boundary()
+
+
+def mark_checked():
+    state = source.load_state(STATE_PATH)
+    state["last_check"] = time.time()
+    with open(STATE_PATH, "w") as state_file:
+        json.dump(state, state_file)
+
+
 def update_catalogue(show_progress=False):
     """Check quietly; show progress only for a real startup download."""
     if ADDON.getSetting("auto_update") != "true":
@@ -39,6 +65,7 @@ def update_catalogue(show_progress=False):
     os.makedirs(PROFILE, exist_ok=True)
     info = source.discover()
     if not source.update_required(DB_PATH, STATE_PATH, info):
+        mark_checked()
         return
 
     dialog = None
@@ -53,6 +80,7 @@ def update_catalogue(show_progress=False):
 
     try:
         source.sync(DB_PATH, STATE_PATH, progress=progress, log=log, info=info)
+        mark_checked()
     finally:
         if dialog:
             dialog.close()
@@ -60,16 +88,11 @@ def update_catalogue(show_progress=False):
 
 def run():
     sync_player(ADDON.getAddonInfo("path"))
-    monitor = xbmc.Monitor()
-    startup = True
-    while not monitor.abortRequested():
+    if check_due():
         try:
-            update_catalogue(show_progress=startup)
+            update_catalogue(show_progress=True)
         except Exception as exc:
             log("catalogue update failed:", exc)
-        startup = False
-        if monitor.waitForAbort(CHECK_INTERVAL):
-            break
 
 
 if __name__ == "__main__":
