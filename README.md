@@ -4,6 +4,8 @@ Kodi repository for **Mirantir**, with automatic add-on updates.
 
 Repository URL: <https://alehaaaa.github.io/mirantir/>
 
+The Pages root can be added directly as a Kodi file source. It exposes links to both the repository installer and the current add-on ZIP.
+
 ## Install in Kodi
 
 1. [Download `repository.mirantir-1.0.0.zip`](https://alehaaaa.github.io/mirantir/zips/repository.mirantir/repository.mirantir-1.0.0.zip).
