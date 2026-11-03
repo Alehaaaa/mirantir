@@ -4,7 +4,7 @@
 import json
 import os
 import sys
-import time
+from datetime import datetime, timedelta
 
 import xbmc
 import xbmcaddon
@@ -33,27 +33,21 @@ def tr(string_id, *values):
     return text.format(*values) if values else text
 
 
-def latest_check_boundary(now=None):
-    """Return the latest local 08:00 or 20:00 boundary as a timestamp."""
-    now = time.time() if now is None else now
-    local = time.localtime(now)
-    hour = 20 if local.tm_hour >= 20 else 8
-    day = local.tm_mday
-    if local.tm_hour < 8:
-        day -= 1
-        hour = 20
-    return time.mktime((local.tm_year, local.tm_mon, day, hour, 0, 0,
-                        0, 0, -1))
+def current_check_slot(now=None):
+    """Return the current twice-daily slot, for example 2026-11-04-08."""
+    now = now or datetime.now()
+    if now.hour < 8:
+        return (now - timedelta(days=1)).strftime("%Y-%m-%d-20")
+    return now.strftime("%Y-%m-%d-20" if now.hour >= 20 else "%Y-%m-%d-08")
 
 
 def check_due():
-    state = source.load_state(STATE_PATH)
-    return float(state.get("last_check", 0)) < latest_check_boundary()
+    return source.load_state(STATE_PATH).get("check_slot") != current_check_slot()
 
 
 def mark_checked():
     state = source.load_state(STATE_PATH)
-    state["last_check"] = time.time()
+    state["check_slot"] = current_check_slot()
     with open(STATE_PATH, "w") as state_file:
         json.dump(state, state_file)
 
