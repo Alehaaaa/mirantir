@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+  <category label="Reproductor">
+    <setting id="autoplay" type="bool"
+             label="Reproducción automática (mejor fuente)" default="false"/>
+    <setting id="enable_4k" type="bool" label="Habilitar 4K" default="true"/>
+    <setting id="enable_dv" type="bool"
+             label="Habilitar Dolby Vision (DV)" default="false"/>
+  </category>
+  <category label="Debrid">
+    <setting type="action" label="Conectar AllDebrid (QR)"
+             action="RunPlugin(plugin://plugin.video.palantir.local/?mode=auth&amp;service=ad)"/>
+    <setting id="ad_token" type="text" label="AllDebrid API key" default=""/>
+    <setting type="sep"/>
+    <setting type="action" label="Conectar RealDebrid (QR)"
+             action="RunPlugin(plugin://plugin.video.palantir.local/?mode=auth&amp;service=rd)"/>
+    <setting id="rd_token" type="text" label="RealDebrid token" default=""/>
+    <setting id="rd_refresh" type="text" label="" default="" visible="false"/>
+    <setting id="rd_client_id" type="text" label="" default="" visible="false"/>
+    <setting id="rd_client_secret" type="text" label="" default="" visible="false"/>
+  </category>
+  <category label="Catálogo">
+    <setting id="auto_update" type="bool"
+             label="Comprobar actualizaciones al iniciar sesión" default="true"/>
+    <setting id="page_size" type="slider" label="Elementos por página"
+             default="60" range="20,20,200" option="int"/>
+    <setting type="action" label="Actualizar base de datos ahora"
+             action="RunPlugin(plugin://plugin.video.palantir.local/?mode=update)"/>
+    <setting type="action" label="Instalar reproductor TMDBHelper (Arctic Horizon)"
+             action="RunPlugin(plugin://plugin.video.palantir.local/?mode=install_player)"/>
+  </category>
+</settings>

@@ -1,0 +1,25 @@
+name: Validate Kodi repository
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Rebuild repository
+        run: python tools/build_repo.py
+      - name: Verify generated files are current
+        run: git diff --exit-code
+      - name: Validate packages and metadata
+        run: python tools/check_repo.py

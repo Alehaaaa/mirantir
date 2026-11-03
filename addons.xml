@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addons>
+<addon id="plugin.video.palantir.local" name="Palantir Local" version="1.2.0" provider-name="aleha">
+  <requires>
+    <import addon="xbmc.python" version="3.0.0"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="default.py">
+    <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en">Palantir catalogue, queried locally</summary>
+    <summary lang="es">Catálogo Palantir, consultado localmente</summary>
+    <description lang="en">Browses the Palantir catalogue from a local SQLite database (auto-downloaded and kept up to date) and plays through RealDebrid or AllDebrid. Self-contained: no external server, pure-Python link decryption.</description>
+    <description lang="es">Navega el catálogo Palantir desde una base de datos SQLite local (descargada y actualizada automáticamente) y reproduce mediante RealDebrid o AllDebrid. Autónomo: sin servidor externo, descifrado de enlaces en Python puro.</description>
+    <platform>all</platform>
+    <license>Personal use</license>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+  </extension>
+</addon>
+<addon id="repository.palantir.local" name="Mirantir" version="1.0.0" provider-name="aleha">
+  <extension point="xbmc.addon.repository" name="Mirantir">
+    <dir>
+      <info compressed="false">https://alehaaaa.github.io/Mirantir/addons.xml</info>
+      <checksum>https://alehaaaa.github.io/Mirantir/addons.xml.md5</checksum>
+      <datadir zip="true">https://alehaaaa.github.io/Mirantir/zips/</datadir>
+    </dir>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en">Mirantir Kodi repository</summary>
+    <summary lang="es">Repositorio Kodi Mirantir</summary>
+    <description lang="en">Install Palantir Local and receive automatic updates through Kodi.</description>
+    <description lang="es">Instala Palantir Local y recibe actualizaciones automáticas mediante Kodi.</description>
+    <platform>all</platform>
+    <license>Personal use</license>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+  </extension>
+</addon>
+</addons>

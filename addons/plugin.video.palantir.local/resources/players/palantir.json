@@ -1,0 +1,26 @@
+{
+    "name": "Palantir Local",
+    "plugin": "plugin.video.palantir.local",
+    "language": "es",
+    "is_resolvable": "true",
+    "play_movie": [
+        {
+            "url": "plugin://plugin.video.palantir.local/?mode=players&media=movie&tmdb={tmdb}"
+        }
+    ],
+    "play_episode": [
+        {
+            "url": "plugin://plugin.video.palantir.local/?mode=players&media=episode&tmdb={tmdb}&season={season}&episode={episode}"
+        }
+    ],
+    "search_movie": [
+        {
+            "url": "plugin://plugin.video.palantir.local/?mode=players&media=movie&tmdb={tmdb}"
+        }
+    ],
+    "search_episode": [
+        {
+            "url": "plugin://plugin.video.palantir.local/?mode=players&media=episode&tmdb={tmdb}&season={season}&episode={episode}"
+        }
+    ]
+}
