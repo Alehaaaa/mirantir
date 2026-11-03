@@ -3,24 +3,8 @@
     "plugin": "plugin.video.mirantir",
     "language": "es",
     "is_resolvable": "true",
-    "play_movie": [
-        {
-            "url": "plugin://plugin.video.mirantir/?mode=players&media=movie&tmdb={tmdb}"
-        }
-    ],
-    "play_episode": [
-        {
-            "url": "plugin://plugin.video.mirantir/?mode=players&media=episode&tmdb={tmdb}&season={season}&episode={episode}"
-        }
-    ],
-    "search_movie": [
-        {
-            "url": "plugin://plugin.video.mirantir/?mode=players&media=movie&tmdb={tmdb}"
-        }
-    ],
-    "search_episode": [
-        {
-            "url": "plugin://plugin.video.mirantir/?mode=players&media=episode&tmdb={tmdb}&season={season}&episode={episode}"
-        }
-    ]
+    "play_movie": "plugin://plugin.video.mirantir/?mode=players&media=movie&tmdb={tmdb}",
+    "play_episode": "plugin://plugin.video.mirantir/?mode=players&media=episode&tmdb={tmdb}&season={season}&episode={episode}",
+    "search_movie": "plugin://plugin.video.mirantir/?mode=players&media=movie&tmdb={tmdb}",
+    "search_episode": "plugin://plugin.video.mirantir/?mode=players&media=episode&tmdb={tmdb}&season={season}&episode={episode}"
 }

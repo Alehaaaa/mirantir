@@ -373,9 +373,40 @@ def _finish_play(direct):
         xbmc.Player().play(direct, li)
 
 
+def _provider_error_summary(errors):
+    """Turn debrid API codes into a concise message suitable for Kodi."""
+    translations = {
+        "bad_token": "sesión caducada",
+        "expired": "sesión caducada",
+        "hoster_unavailable": "servidor no disponible",
+        "hoster_not_free": "servidor no compatible",
+        "unsupported_link": "enlace no compatible",
+        "traffic_exhausted": "tráfico agotado",
+        "permission_denied": "permiso denegado",
+        "link_host_not_supported": "servidor no compatible",
+        "link_down": "enlace caído",
+        "free_trial_limit_reached": "límite de cuenta alcanzado",
+        "auth_missing_apikey": "sesión no válida",
+    }
+    readable = []
+    for combined in errors:
+        for entry in combined.split(";"):
+            entry = entry.strip()
+            if not entry:
+                continue
+            provider, sep, reason = entry.partition(":")
+            provider = {"ad": "AllDebrid", "rd": "RealDebrid"}.get(provider, provider)
+            reason = reason.strip()
+            friendly = translations.get(reason.lower(), reason.replace("_", " "))
+            readable.append("%s: %s" % (provider, friendly) if sep else friendly)
+    return "; ".join(sorted(set(readable)))
+
+
 def _play_from(rows):
     """Try sources in order (with provider fallback) until one plays."""
-    last = "sin fuentes"
+    attempted = min(len(rows), 15)
+    decrypted = 0
+    provider_errors = []
     dlg = None
     try:
         dlg = xbmcgui.DialogProgressBG()
@@ -397,22 +428,35 @@ def _play_from(rows):
                 u = None
             if not u:
                 continue
+            decrypted += 1
             direct, err, prov = debrid.unlock_any(ADDON, u)
             if direct:
                 _finish_play(direct)
                 return True
-            last = err or last
+            if err:
+                provider_errors.append(str(err))
     finally:
         try:
             if dlg:
                 dlg.close()
         except Exception:
             pass
-    tip = ""
-    if "infring" in str(last):
-        tip = " — prueba AllDebrid"
-    notify("Sin fuente reproducible (%s)%s" % (last, tip),
-           icon=xbmcgui.NOTIFICATION_ERROR, ms=7000)
+    if decrypted == 0:
+        message = ("Fuentes no válidas: se encontraron %d, pero ninguna pudo "
+                   "descifrarse." % attempted)
+    elif provider_errors:
+        details = _provider_error_summary(provider_errors)
+        if len(details) > 110:
+            details = details[:107] + "…"
+        message = ("No disponible: todos los proveedores rechazaron las fuentes "
+                   "(%d/%d). %s" % (decrypted, attempted, details))
+        if "infring" in details.lower():
+            message += " Prueba AllDebrid."
+    else:
+        message = ("No disponible: se probaron %d fuentes, pero ninguna devolvió "
+                   "un enlace reproducible." % attempted)
+    _log("playback failed:", message)
+    notify(message, icon=xbmcgui.NOTIFICATION_ERROR, ms=10000)
     return False
 
 
@@ -424,11 +468,18 @@ def resolve_and_play(mtype, tmdb, season=None, episode=None):
         rows = _links(mtype, tmdb, season, episode)
     except Exception as e:
         _log("links error:", e)
-        rows = []
+        notify("No se pudo consultar el catálogo local: %s" % e,
+               icon=xbmcgui.NOTIFICATION_ERROR, ms=8000)
+        return _fail_resolve()
     if not rows:
-        notify("Sin fuentes para este título", icon=xbmcgui.NOTIFICATION_WARNING)
+        target = ("esta película" if mtype == "movie" else
+                  "este episodio (T%s E%s)" % (season, episode))
+        notify("No disponible: Mirantir no tiene fuentes para %s." % target,
+               icon=xbmcgui.NOTIFICATION_WARNING, ms=8000)
         return _fail_resolve()
     if not ensure_debrid_or_auth():
+        notify("Reproducción cancelada: no hay un servicio debrid conectado.",
+               icon=xbmcgui.NOTIFICATION_WARNING, ms=7000)
         return _fail_resolve()
 
     if autoplay():
@@ -440,6 +491,8 @@ def resolve_and_play(mtype, tmdb, season=None, episode=None):
     labels = [quality.label(c, a, i) for (_, c, a, i) in rows]
     idx = xbmcgui.Dialog().select("Elige versión", labels)
     if idx < 0:
+        notify("Reproducción cancelada: no seleccionaste una fuente.",
+               icon=xbmcgui.NOTIFICATION_INFO, ms=5000)
         return _fail_resolve()
     ordered = [rows[idx]] + [r for j, r in enumerate(rows) if j != idx]
     if not _play_from(ordered):
