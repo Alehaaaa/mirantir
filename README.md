@@ -14,11 +14,18 @@ Kodi will subsequently discover new versions through `addons.xml` and update the
 
 ## Publish an update
 
-1. Replace the source in `addons/plugin.video.mirantir/` and increase the `version` in its `addon.xml`.
-2. Run `python3 tools/build_repo.py`.
-3. Run `python3 tools/check_repo.py` and commit every changed file.
+1. Work directly in `addons/plugin.video.mirantir/`.
+2. Increase the `version` in `addons/plugin.video.mirantir/addon.xml`.
+3. Commit and push the source changes to `main`.
 
-The build is deterministic, and GitHub Actions rejects commits whose generated metadata or ZIP packages are stale.
+GitHub Actions automatically creates the versioned Kodi ZIP, regenerates `addons.xml` and `addons.xml.md5`, validates the repository, and commits the published artifacts. GitHub Pages then serves the update to Kodi.
+
+For a local preview, run:
+
+```sh
+python3 tools/build_repo.py
+python3 tools/check_repo.py
+```
 
 ## Repository layout
 

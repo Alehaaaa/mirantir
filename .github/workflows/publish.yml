@@ -1,0 +1,44 @@
+name: Build and publish Kodi updates
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "addons/**"
+      - "tools/build_repo.py"
+      - "tools/check_repo.py"
+      - ".github/workflows/publish.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-kodi-repository
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Build Kodi repository
+        run: python tools/build_repo.py
+      - name: Validate packages and metadata
+        run: python tools/check_repo.py
+      - name: Publish generated update files
+        run: |
+          if git diff --quiet -- addons.xml addons.xml.md5 zips; then
+            echo "Generated repository files are already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add addons.xml addons.xml.md5 zips
+          git commit -m "Build Kodi repository updates"
+          git push
