@@ -2,6 +2,7 @@
 """Read-only queries against the local Mirantir catalogue (moria.cm3)."""
 
 import sqlite3
+import re
 
 MOVIE_CATS = ["Película", "Anime", "Dibujo", "Documental", "Música"]
 SERIES_CATS = ["General", "Anime", "Dibujo", "Documental", "Novela", "Reality", "Retro"]
@@ -12,6 +13,44 @@ def _conn(db_path):
     # Plain connection (we only ever read). Avoids file:-URI path issues on
     # Windows/Android, where backslashes and special chars break URI parsing.
     return sqlite3.connect(db_path, timeout=5)
+
+
+SECTION_CATEGORIES = {
+    "movies": (("Película",), ()),
+    "shows": ((), ("General", "Retro", "Reality")),
+    "soaps": ((), ("Novela",)),
+    "cartoons": (("Dibujo",), ("Dibujo",)),
+    "anime": (("Anime",), ("Anime",)),
+    "music": (("Música",), ()),
+    "documentaries": (("Documental", "Ducumental"), ("Documental",)),
+}
+
+
+def list_section(db_path, section, offset=0, limit=60):
+    """List a Palantir catalogue section without external menu services."""
+    movie_cats, series_cats = SECTION_CATEGORIES[section]
+    queries, params = [], []
+    columns = ("tmdb,titulo,plot,poster,fondo,genero,fecha,rating,mpaa,"
+               "duration,clearlogo,updated")
+    if movie_cats:
+        marks = ",".join("?" for _ in movie_cats)
+        queries.append("SELECT 'movie' media,%s FROM pelis WHERE categoria IN (%s)" %
+                       (columns, marks))
+        params.extend(movie_cats)
+    if series_cats:
+        marks = ",".join("?" for _ in series_cats)
+        queries.append("SELECT 'series' media,tmdb,titulo,plot,poster,fondo,genero,"
+                       "fecha,rating,mpaa,NULL duration,clearlogo,updated FROM series "
+                       "WHERE categoria IN (%s)" % marks)
+        params.extend(series_cats)
+    sql = " UNION ALL ".join(queries) + " ORDER BY updated DESC, tmdb DESC LIMIT ? OFFSET ?"
+    params.extend((limit + 1, offset))
+    conn = _conn(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        return [dict(row) for row in conn.execute(sql, params).fetchall()]
+    finally:
+        conn.close()
 
 
 def img(path, size="w500"):

@@ -241,11 +241,50 @@ def add_dir(label, params, art=None, info=None, playable=False, folder=True):
 # navigation
 # --------------------------------------------------------------------------- #
 def root():
-    add_dir("[B]%s[/B]" % tr(32030), {"mode": "cats", "type": "movie"})
-    add_dir("[B]%s[/B]" % tr(32031), {"mode": "cats", "type": "series"})
+    for section, label_id in (("movies", 32030), ("shows", 32031),
+                              ("soaps", 32109), ("cartoons", 32100),
+                              ("anime", 32101), ("music", 32102),
+                              ("documentaries", 32103)):
+        add_dir("[B]%s[/B]" % tr(label_id),
+                {"mode": "section", "section": section})
     add_dir(tr(32032), {"mode": "search", "type": "movie"})
     add_dir(tr(32033), {"mode": "search", "type": "series"})
     add_dir(tr(32012), {"mode": "update"}, folder=False)
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+def section_listing(section, offset=0):
+    limit = page_size()
+    rows = db.list_section(DB_PATH, section, offset, limit)
+    xbmcplugin.setContent(HANDLE, "videos")
+    more = len(rows) > limit
+    for row in rows[:limit]:
+        mtype = row["media"]
+        tmdb = row.get("tmdb")
+        art = {"poster": db.img(row.get("poster")),
+               "fanart": db.img(row.get("fondo"), "w1280"),
+               "thumb": db.img(row.get("poster")),
+               "clearlogo": db.img(row.get("clearlogo"))}
+        info = {"title": row.get("titulo"), "plot": row.get("plot"),
+                "year": db.year(row.get("fecha")),
+                "genres": db.genres(row.get("genero")),
+                "rating": db.rating(row.get("rating")),
+                "mpaa": row.get("mpaa"),
+                "mediatype": "movie" if mtype == "movie" else "tvshow"}
+        if mtype == "movie":
+            info["duration"] = _int(row.get("duration"))
+            params = {"mode": "resolve", "type": "movie", "tmdb": tmdb}
+            add_dir(row.get("titulo"), params, art=art, info=info,
+                    playable=True, folder=False)
+        else:
+            params = {"mode": "seasons", "tmdb": tmdb,
+                      "title": row.get("titulo") or "",
+                      "poster": row.get("poster") or "",
+                      "fondo": row.get("fondo") or ""}
+            add_dir(row.get("titulo"), params, art=art, info=info)
+    if more:
+        add_dir("[B]%s[/B]" % tr(32036), {"mode": "section", "section": section,
+                "offset": offset + limit})
     xbmcplugin.endOfDirectory(HANDLE)
 
 
@@ -550,6 +589,8 @@ def _dispatch(mode):
         root()
     elif mode == "cats":
         cats(PARAMS["type"])
+    elif mode == "section":
+        section_listing(PARAMS["section"], _int(PARAMS.get("offset", 0)))
     elif mode == "genres":
         genres(PARAMS["type"])
     elif mode == "list":
