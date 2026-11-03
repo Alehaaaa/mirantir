@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import hashlib
+import html
 import shutil
 import sys
 import xml.etree.ElementTree as ET
@@ -29,7 +30,7 @@ def addon_details(addon_dir: Path) -> tuple[str, str, Path]:
     return addon_id, version, addon_xml
 
 
-def zip_addon(addon_dir: Path, addon_id: str, version: str) -> None:
+def zip_addon(addon_dir: Path, addon_id: str, version: str) -> Path:
     output_dir = ZIPS / addon_id
     output_dir.mkdir(parents=True, exist_ok=True)
     for old_zip in output_dir.glob(f"{addon_id}-*.zip"):
@@ -52,10 +53,40 @@ def zip_addon(addon_dir: Path, addon_id: str, version: str) -> None:
             shutil.copyfile(source, target)
         elif target.exists():
             target.unlink()
+    return output
+
+
+def write_kodi_source_index(packages: list[Path]) -> None:
+    for addon_id in ("plugin.video.mirantir", "repository.mirantir"):
+        for stale_package in ROOT.glob(f"{addon_id}-*.zip"):
+            stale_package.unlink()
+    links: list[str] = []
+    for package in packages:
+        root_package = ROOT / package.name
+        shutil.copyfile(package, root_package)
+        filename = html.escape(package.name)
+        links.append(f'    <li><a href="{filename}">{filename}</a></li>')
+    page = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Index of /mirantir/</title>
+</head>
+<body>
+  <h1>Index of /mirantir/</h1>
+  <ul>
+%s
+  </ul>
+</body>
+</html>
+""" % "\n".join(links)
+    (ROOT / "index.html").write_text(page, encoding="utf-8")
 
 
 def main() -> int:
     addon_xml_documents: list[bytes] = []
+    packages: list[Path] = []
     ZIPS.mkdir(exist_ok=True)
     addon_dirs = sorted(path for path in ADDONS.iterdir() if path.is_dir())
     if not addon_dirs:
@@ -67,10 +98,11 @@ def main() -> int:
         if addon_start < 0:
             raise SystemExit(f"Missing <addon> root in {addon_xml}")
         addon_xml_documents.append(addon_document[addon_start:])
-        zip_addon(addon_dir, addon_id, version)
+        packages.append(zip_addon(addon_dir, addon_id, version))
     document = b'<?xml version="1.0" encoding="UTF-8"?>\n<addons>\n' + b"\n".join(addon_xml_documents) + b"\n</addons>\n"
     (ROOT / "addons.xml").write_bytes(document)
     (ROOT / "addons.xml.md5").write_text(hashlib.md5(document).hexdigest(), encoding="ascii")
+    write_kodi_source_index(packages)
     print(f"Built {len(addon_dirs)} add-ons")
     return 0
 

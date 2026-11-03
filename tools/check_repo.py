@@ -26,6 +26,10 @@ def main() -> int:
         with zipfile.ZipFile(package) as archive:
             assert archive.testzip() is None, f"Corrupt {package}"
             assert f"{addon_id}/addon.xml" in archive.namelist()
+        root_package = ROOT / package.name
+        assert root_package.read_bytes() == package.read_bytes(), f"Stale {root_package}"
+        anchor = f'<a href="{package.name}">{package.name}</a>'
+        assert anchor in (ROOT / "index.html").read_text(encoding="utf-8")
     print(f"Validated {len(root.findall('addon'))} add-ons")
     return 0
 
