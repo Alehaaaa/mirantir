@@ -33,8 +33,6 @@ def addon_details(addon_dir: Path) -> tuple[str, str, Path]:
 def zip_addon(addon_dir: Path, addon_id: str, version: str) -> Path:
     output_dir = ZIPS / addon_id
     output_dir.mkdir(parents=True, exist_ok=True)
-    for old_zip in output_dir.glob(f"{addon_id}-*.zip"):
-        old_zip.unlink()
     output = output_dir / f"{addon_id}-{version}.zip"
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for source in sorted(addon_dir.rglob("*")):
