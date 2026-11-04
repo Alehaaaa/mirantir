@@ -29,7 +29,7 @@ def _message(addon, flow, seconds, status_id=32075):
     return "[CR]".join((
         _tr(addon, 32074, flow.verify_url),
         "",
-        str(flow.code),
+        "[B]%s[/B]" % flow.code,
         "",
         _tr(addon, 32076, max(0, seconds)),
         _tr(addon, status_id),
