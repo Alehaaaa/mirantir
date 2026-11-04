@@ -326,3 +326,55 @@ msgstr "Documentaries"
 msgctxt "#32109"
 msgid "Soap operas"
 msgstr "Soap operas"
+
+msgctxt "#32110"
+msgid "Recently added"
+msgstr "Recently added"
+
+msgctxt "#32111"
+msgid "Movies"
+msgstr "Movies"
+
+msgctxt "#32112"
+msgid "Recently updated shows"
+msgstr "Recently updated shows"
+
+msgctxt "#32113"
+msgid "New shows"
+msgstr "New shows"
+
+msgctxt "#32114"
+msgid "All TV shows"
+msgstr "All TV shows"
+
+msgctxt "#32115"
+msgid "Retro"
+msgstr "Retro"
+
+msgctxt "#32116"
+msgid "Reality"
+msgstr "Reality"
+
+msgctxt "#32117"
+msgid "By year"
+msgstr "By year"
+
+msgctxt "#32118"
+msgid "New releases"
+msgstr "New releases"
+
+msgctxt "#32119"
+msgid "Collections"
+msgstr "Collections"
+
+msgctxt "#32120"
+msgid "A-Z"
+msgstr "A-Z"
+
+msgctxt "#32121"
+msgid "By quality"
+msgstr "By quality"
+
+msgctxt "#32122"
+msgid "Special collections"
+msgstr "Special collections"

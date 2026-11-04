@@ -18,8 +18,7 @@ import xbmcgui
 
 _ACTION_CANCEL = (9, 10, 92)   # parent dir / previous menu / nav back
 
-C_HEAD, C_QR, C_URL, C_CODE, C_BAR, C_COUNT, C_STATUS, C_CANCEL = \
-    100, 101, 102, 103, 104, 105, 106, 500
+C_HEAD, C_QR, C_BAR, C_TEXT, C_CANCEL = 100, 101, 104, 107, 500
 
 _ENGLISH_FALLBACK = {
     32069: "Error: {0}",
@@ -42,14 +41,14 @@ def _tr(addon, string_id, *values):
 
 def _qr_png(data, path):
     try:
-        url = ("https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=10&data="
-               + urllib.parse.quote(data, safe=""))
+        url = ("https://api.qrserver.com/v1/create-qr-code/"
+               "?size=360x360&margin=10&data=" + urllib.parse.quote(data, safe=""))
         req = urllib.request.Request(url, headers={"User-Agent": "mirantir"})
-        with urllib.request.urlopen(req, timeout=12) as r:
-            png = r.read()
+        with urllib.request.urlopen(req, timeout=12) as response:
+            png = response.read()
         if png[:4] == b"\x89PNG":
-            with open(path, "wb") as f:
-                f.write(png)
+            with open(path, "wb") as output:
+                output.write(png)
             return True
     except Exception:
         pass
@@ -61,11 +60,13 @@ class AuthDialog(xbmcgui.WindowXMLDialog):
     def onInit(self):
         self.result = None
         self._stop = False
+        self._seconds_left = int(getattr(self.flow, "expires_in", 600))
+        self._status = _tr(self.addon, 32075)
         self._qr_file = os.path.join(tempfile.gettempdir(), "mirantir_qr.png")
         self._set(C_HEAD, _tr(self.addon, 32073, self.flow.name))
         self._set(C_CANCEL, xbmc.getLocalizedString(222) or "Cancel")
         self._refresh_display()
-        threading.Thread(target=self._worker).start()
+        threading.Thread(target=self._worker, name="MirantirAuth", daemon=True).start()
 
     # ---- helpers --------------------------------------------------------- #
     def _set(self, cid, text):
@@ -80,6 +81,20 @@ class AuthDialog(xbmcgui.WindowXMLDialog):
         except Exception:
             pass
 
+    def _set_text(self):
+        text = "[CR]".join((
+            _tr(self.addon, 32074, self.flow.verify_url),
+            "",
+            str(self.flow.code),
+            "",
+            _tr(self.addon, 32076, self._seconds_left),
+            self._status,
+        ))
+        try:
+            self.getControl(C_TEXT).setText(text)
+        except Exception:
+            pass
+
     def _set_qr(self):
         if _qr_png(self.flow.verify_url, self._qr_file):
             try:
@@ -88,9 +103,8 @@ class AuthDialog(xbmcgui.WindowXMLDialog):
                 pass
 
     def _refresh_display(self):
-        self._set(C_URL, _tr(self.addon, 32074, self.flow.verify_url))
-        self._set(C_CODE, str(self.flow.code))
-        self._set(C_STATUS, _tr(self.addon, 32075))
+        self._status = _tr(self.addon, 32075)
+        self._set_text()
         self._set_qr()
 
     # ---- worker ---------------------------------------------------------- #
@@ -102,8 +116,9 @@ class AuthDialog(xbmcgui.WindowXMLDialog):
             last_poll = 0.0
             while not self._stop and time.time() < deadline:
                 left = int(deadline - time.time())
+                self._seconds_left = left
                 self._set_percent(100.0 * left / total)
-                self._set(C_COUNT, _tr(self.addon, 32076, left))
+                self._set_text()
                 if time.time() - last_poll >= interval:
                     last_poll = time.time()
                     try:
@@ -113,7 +128,8 @@ class AuthDialog(xbmcgui.WindowXMLDialog):
                     if st == "ok":
                         self.result = getattr(self.flow, "result", None)
                         self._save()
-                        self._set(C_STATUS, _tr(self.addon, 32077))
+                        self._status = _tr(self.addon, 32077)
+                        self._set_text()
                         xbmc.sleep(700)
                         self._stop = True
                         self.close()
@@ -123,10 +139,12 @@ class AuthDialog(xbmcgui.WindowXMLDialog):
                 xbmc.sleep(500)
             if self._stop:
                 break
-            self._set(C_STATUS, _tr(self.addon, 32078))
+            self._status = _tr(self.addon, 32078)
+            self._set_text()
             try:
                 if not self.flow.start():
-                    self._set(C_STATUS, _tr(self.addon, 32079))
+                    self._status = _tr(self.addon, 32079)
+                    self._set_text()
                     xbmc.sleep(2500)
                     break
                 self._refresh_display()

@@ -134,6 +134,7 @@ class AllDebridFlow(object):
         self.code = d.get("pin", "")
         self.verify_url = d.get("user_url") or self.manual_url
         self.expires_in = int(d.get("expires_in", 600))
+        self.interval = 5
         return bool(self.check_url)
 
     def poll(self):
@@ -162,7 +163,8 @@ class RealDebridFlow(object):
                       % RD_CLIENT_ID)
         self.device_code = j.get("device_code")
         self.code = j.get("user_code", "")
-        self.verify_url = j.get("verification_url") or self.manual_url
+        self.verify_url = (j.get("direct_verification_url") or
+                           j.get("verification_url") or self.manual_url)
         self.expires_in = int(j.get("expires_in", 600))
         self.interval = int(j.get("interval", 5))
         self._cid = self._cs = None

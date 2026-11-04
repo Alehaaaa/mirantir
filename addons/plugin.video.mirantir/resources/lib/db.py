@@ -76,20 +76,39 @@ def genres(g):
 
 
 # ----------------------------------------------------------------- listings --
-def list_movies(db_path, cat=None, genre=None, search=None, offset=0, limit=60):
+def list_movies(db_path, cat=None, genre=None, search=None, offset=0, limit=60,
+                cats=None, year_value=None, sort="updated", letter=None,
+                quality_value=None, collection=None):
     where, params = [], []
     if cat:
         where.append("categoria = ?"); params.append(cat)
+    elif cats:
+        where.append("categoria IN (%s)" % ",".join("?" for _ in cats))
+        params.extend(cats)
     if genre:
         where.append("genero LIKE ?"); params.append("%" + genre + "%")
+    if year_value:
+        where.append("substr(fecha, 1, 4) = ?"); params.append(str(year_value))
+    if letter:
+        if letter == "0-9":
+            where.append("substr(upper(titulo),1,1) between '0' and '9'")
+        else:
+            where.append("upper(titulo) LIKE ?"); params.append(letter.upper() + "%")
+    if quality_value:
+        where.append("exists (select 1 from enlaces_pelis ep where ep.tmdb=pelis.tmdb "
+                     "and ep.calidad = ?)"); params.append(quality_value)
+    if collection:
+        where.append("('#' || coalesce(coleccion,'') || '#') LIKE ?")
+        params.append("%%#%s#%%" % collection)
     if search:
         where.append("titulo LIKE ? COLLATE NOCASE"); params.append("%" + search + "%")
     sql = ("select tmdb,titulo,plot,poster,fondo,genero,fecha,rating,duration,"
            "mpaa,trailer,clearlogo from pelis")
     if where:
         sql += " WHERE " + " AND ".join(where)
-    sql += " ORDER BY %s LIMIT ? OFFSET ?" % (
-        "titulo COLLATE NOCASE" if search else "updated DESC, tmdb DESC")
+    order = {"title": "titulo COLLATE NOCASE", "date": "fecha DESC, updated DESC",
+             "updated": "updated DESC, tmdb DESC"}.get(sort, "updated DESC, tmdb DESC")
+    sql += " ORDER BY %s LIMIT ? OFFSET ?" % order
     params += [limit + 1, offset]
     c = _conn(db_path)
     try:
@@ -98,19 +117,35 @@ def list_movies(db_path, cat=None, genre=None, search=None, offset=0, limit=60):
         c.close()
 
 
-def list_series(db_path, cat=None, genre=None, search=None, offset=0, limit=60):
+def list_series(db_path, cat=None, genre=None, search=None, offset=0, limit=60,
+                cats=None, year_value=None, sort="updated", letter=None):
     where, params = [], []
     if cat:
         where.append("categoria = ?"); params.append(cat)
+    elif cats:
+        where.append("categoria IN (%s)" % ",".join("?" for _ in cats))
+        params.extend(cats)
     if genre:
         where.append("genero LIKE ?"); params.append("%" + genre + "%")
+    if year_value:
+        where.append("substr(fecha, 1, 4) = ?"); params.append(str(year_value))
+    if letter:
+        if letter == "0-9":
+            where.append("substr(upper(titulo),1,1) between '0' and '9'")
+        else:
+            where.append("upper(titulo) LIKE ?"); params.append(letter.upper() + "%")
     if search:
         where.append("titulo LIKE ? COLLATE NOCASE"); params.append("%" + search + "%")
     sql = ("select tmdb,titulo,plot,poster,fondo,genero,fecha,rating,mpaa from series")
     if where:
         sql += " WHERE " + " AND ".join(where)
-    sql += " ORDER BY %s LIMIT ? OFFSET ?" % (
-        "titulo COLLATE NOCASE" if search else "updated DESC, tmdb DESC")
+    order = {
+        "title": "titulo COLLATE NOCASE",
+        "date": "fecha DESC, updated DESC",
+        "updated": "COALESCE((SELECT MAX(es.updated) FROM enlaces_series es "
+                   "WHERE es.tmdb=series.tmdb), updated) DESC, tmdb DESC",
+    }.get(sort, "updated DESC, tmdb DESC")
+    sql += " ORDER BY %s LIMIT ? OFFSET ?" % order
     params += [limit + 1, offset]
     c = _conn(db_path)
     try:
@@ -119,11 +154,17 @@ def list_series(db_path, cat=None, genre=None, search=None, offset=0, limit=60):
         c.close()
 
 
-def movie_genres(db_path):
+def media_genres(db_path, mtype, cats=None):
     from collections import Counter
     c = _conn(db_path); cnt = Counter()
     try:
-        for (g,) in c.execute("select genero from pelis where genero is not null"):
+        table = "pelis" if mtype == "movie" else "series"
+        sql = "select genero from %s where genero is not null" % table
+        params = []
+        if cats:
+            sql += " and categoria in (%s)" % ",".join("?" for _ in cats)
+            params.extend(cats)
+        for (g,) in c.execute(sql, params):
             for x in g.split("#"):
                 x = x.strip()
                 if x:
@@ -131,6 +172,47 @@ def movie_genres(db_path):
     finally:
         c.close()
     return [g for g, _ in cnt.most_common(30)]
+
+
+def media_years(db_path, mtype, cats=None):
+    table = "pelis" if mtype == "movie" else "series"
+    sql = ("select distinct substr(fecha,1,4) year from %s "
+           "where fecha is not null and length(fecha) >= 4" % table)
+    params = []
+    if cats:
+        sql += " and categoria in (%s)" % ",".join("?" for _ in cats)
+        params.extend(cats)
+    sql += " order by year desc"
+    c = _conn(db_path)
+    try:
+        return [row[0] for row in c.execute(sql, params).fetchall() if row[0]]
+    finally:
+        c.close()
+
+
+def movie_collections(db_path, specials=False):
+    c = _conn(db_path)
+    try:
+        operator = "=" if specials else ">"
+        return c.execute(
+            "select id,titulo,poster,fondo from colecciones_pelis "
+            "where cast(id as integer) " + operator + " 0 and "
+            "exists (select 1 from pelis where "
+            "('#' || coalesce(coleccion,'') || '#') like ('%#' || id || '#%')) "
+            "order by titulo collate nocase"
+        ).fetchall()
+    finally:
+        c.close()
+
+
+def movie_qualities(db_path):
+    c = _conn(db_path)
+    try:
+        return [row[0] for row in c.execute(
+            "select distinct calidad from enlaces_pelis where calidad is not null "
+            "and calidad != '' order by calidad desc").fetchall()]
+    finally:
+        c.close()
 
 
 def seasons(db_path, tmdb):

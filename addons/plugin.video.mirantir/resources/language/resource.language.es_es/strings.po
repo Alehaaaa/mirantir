@@ -326,3 +326,55 @@ msgstr "Documentales"
 msgctxt "#32109"
 msgid "Soap operas"
 msgstr "Telenovelas"
+
+msgctxt "#32110"
+msgid "Recently added"
+msgstr "Últimas añadidas"
+
+msgctxt "#32111"
+msgid "Movies"
+msgstr "Películas"
+
+msgctxt "#32112"
+msgid "Recently updated shows"
+msgstr "Series actualizadas"
+
+msgctxt "#32113"
+msgid "New shows"
+msgstr "Novedades"
+
+msgctxt "#32114"
+msgid "All TV shows"
+msgstr "Todas las series"
+
+msgctxt "#32115"
+msgid "Retro"
+msgstr "Retro"
+
+msgctxt "#32116"
+msgid "Reality"
+msgstr "Reality"
+
+msgctxt "#32117"
+msgid "By year"
+msgstr "Por año"
+
+msgctxt "#32118"
+msgid "New releases"
+msgstr "Novedades"
+
+msgctxt "#32119"
+msgid "Collections"
+msgstr "Colecciones"
+
+msgctxt "#32120"
+msgid "A-Z"
+msgstr "A-Z"
+
+msgctxt "#32121"
+msgid "By quality"
+msgstr "Por calidad"
+
+msgctxt "#32122"
+msgid "Special collections"
+msgstr "Especiales"

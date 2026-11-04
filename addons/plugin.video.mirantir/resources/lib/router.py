@@ -245,8 +245,9 @@ def add_dir(label, params, art=None, info=None, playable=False, folder=True):
 # navigation
 # --------------------------------------------------------------------------- #
 def root():
-    for section, label_id in (("movies", 32030), ("shows", 32031),
-                              ("soaps", 32109), ("cartoons", 32100),
+    add_dir(tr(32030), {"mode": "cats", "type": "movie"})
+    add_dir(tr(32031), {"mode": "cats", "type": "series"})
+    for section, label_id in (("soaps", 32109), ("cartoons", 32100),
                               ("anime", 32101), ("music", 32102),
                               ("documentaries", 32103)):
         add_dir(tr(label_id),
@@ -293,25 +294,94 @@ def section_listing(section, offset=0):
 
 
 def cats(mtype):
-    add_dir(tr(32034), {"mode": "list", "type": mtype})
-    for c in (db.MOVIE_CATS if mtype == "movie" else db.SERIES_CATS):
-        add_dir(c, {"mode": "list", "type": mtype, "cat": c})
-    add_dir(tr(32035), {"mode": "genres", "type": mtype})
-    xbmcplugin.endOfDirectory(HANDLE)
-
-
-def genres(mtype):
-    for g in db.movie_genres(DB_PATH):
-        add_dir(g, {"mode": "list", "type": mtype, "genre": g})
-    xbmcplugin.endOfDirectory(HANDLE)
-
-
-def listing(mtype, cat=None, genre=None, search=None, offset=0):
-    limit = page_size()
     if mtype == "movie":
-        rows = db.list_movies(DB_PATH, cat, genre, search, offset, limit)
+        group = "movies"
+        add_dir(tr(32111), {"mode": "list", "type": mtype, "group": group,
+                            "sort": "title"})
+        add_dir(tr(32118), {"mode": "list", "type": mtype, "group": group,
+                            "sort": "date"})
+        add_dir(tr(32110), {"mode": "list", "type": mtype, "group": group,
+                            "sort": "updated"})
+        add_dir(tr(32119), {"mode": "collections", "kind": "collections"})
+        add_dir(tr(32122), {"mode": "collections", "kind": "specials"})
     else:
-        rows = db.list_series(DB_PATH, cat, genre, search, offset, limit)
+        group = "shows"
+        add_dir(tr(32112), {"mode": "list", "type": mtype, "group": group,
+                            "sort": "updated"})
+        add_dir(tr(32113), {"mode": "list", "type": mtype, "group": group,
+                            "sort": "date"})
+        add_dir(tr(32114), {"mode": "list", "type": mtype, "group": group,
+                            "sort": "title"})
+        add_dir(tr(32115), {"mode": "list", "type": mtype, "cat": "Retro",
+                            "sort": "title"})
+        add_dir(tr(32116), {"mode": "list", "type": mtype, "cat": "Reality",
+                            "sort": "title"})
+    add_dir(tr(32035), {"mode": "genres", "type": mtype, "group": group})
+    add_dir(tr(32120), {"mode": "letters", "type": mtype, "group": group})
+    add_dir(tr(32117), {"mode": "years", "type": mtype, "group": group})
+    if mtype == "movie":
+        add_dir(tr(32121), {"mode": "qualities", "group": group})
+    add_dir(tr(32032 if mtype == "movie" else 32033),
+            {"mode": "search", "type": mtype})
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+def _group_cats(group):
+    return ("Película",) if group == "movies" else ("General", "Retro", "Reality")
+
+
+def genres(mtype, group=None):
+    cats_filter = _group_cats(group) if group else None
+    for g in db.media_genres(DB_PATH, mtype, cats_filter):
+        add_dir(g, {"mode": "list", "type": mtype, "genre": g,
+                    "group": group or ""})
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+def years(mtype, group=None):
+    cats_filter = _group_cats(group) if group else None
+    for value in db.media_years(DB_PATH, mtype, cats_filter):
+        add_dir(value, {"mode": "list", "type": mtype, "year": value,
+                        "group": group or "", "sort": "date"})
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+def letters(mtype, group=None):
+    for value in ("0-9", "A", "B", "C", "D", "E", "F", "G", "H", "I",
+                  "J", "K", "L", "M", "N", "Ñ", "O", "P", "Q", "R",
+                  "S", "T", "U", "V", "W", "X", "Y", "Z"):
+        add_dir(value, {"mode": "list", "type": mtype, "letter": value,
+                        "group": group or "", "sort": "title"})
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+def collections(specials=False):
+    for cid, title, poster, fanart in db.movie_collections(DB_PATH, specials):
+        add_dir(title, {"mode": "list", "type": "movie", "collection": cid,
+                        "sort": "title"},
+                art={"poster": db.img(poster), "fanart": db.img(fanart, "w1280")})
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+def qualities(group=None):
+    for value in db.movie_qualities(DB_PATH):
+        add_dir(value, {"mode": "list", "type": "movie", "quality": value,
+                        "group": group or "", "sort": "updated"})
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+def listing(mtype, cat=None, genre=None, search=None, offset=0, group=None,
+            year_value=None, sort="updated", letter=None, quality_value=None,
+            collection=None):
+    limit = page_size()
+    cats_filter = _group_cats(group) if group else None
+    if mtype == "movie":
+        rows = db.list_movies(DB_PATH, cat, genre, search, offset, limit,
+                              cats_filter, year_value, sort, letter,
+                              quality_value, collection)
+    else:
+        rows = db.list_series(DB_PATH, cat, genre, search, offset, limit,
+                              cats_filter, year_value, sort, letter)
     more = len(rows) > limit
     rows = rows[:limit]
     xbmcplugin.setContent(HANDLE, "movies" if mtype == "movie" else "tvshows")
@@ -340,9 +410,11 @@ def listing(mtype, cat=None, genre=None, search=None, offset=0):
                     art=art, info=info)
     if more:
         nxt = {"mode": "list", "type": mtype, "offset": offset + limit}
-        for k in ("cat", "genre", "search"):
+        for k in ("cat", "genre", "search", "group", "year_value", "sort",
+                  "letter", "quality_value", "collection"):
             if locals().get(k):
-                nxt[k] = locals()[k]
+                key = {"year_value": "year", "quality_value": "quality"}.get(k, k)
+                nxt[key] = locals()[k]
         add_dir(tr(32036), nxt)
     xbmcplugin.endOfDirectory(HANDLE)
 
@@ -596,10 +668,21 @@ def _dispatch(mode):
     elif mode == "section":
         section_listing(PARAMS["section"], _int(PARAMS.get("offset", 0)))
     elif mode == "genres":
-        genres(PARAMS["type"])
+        genres(PARAMS["type"], PARAMS.get("group"))
+    elif mode == "years":
+        years(PARAMS["type"], PARAMS.get("group"))
+    elif mode == "letters":
+        letters(PARAMS["type"], PARAMS.get("group"))
+    elif mode == "collections":
+        collections(PARAMS.get("kind") == "specials")
+    elif mode == "qualities":
+        qualities(PARAMS.get("group"))
     elif mode == "list":
         listing(PARAMS["type"], PARAMS.get("cat"), PARAMS.get("genre"),
-                PARAMS.get("search"), _int(PARAMS.get("offset", 0)))
+                PARAMS.get("search"), _int(PARAMS.get("offset", 0)),
+                PARAMS.get("group"), PARAMS.get("year"),
+                PARAMS.get("sort", "updated"), PARAMS.get("letter"),
+                PARAMS.get("quality"), PARAMS.get("collection"))
     elif mode == "seasons":
         seasons(_int(PARAMS["tmdb"]), PARAMS.get("title", ""),
                 PARAMS.get("poster", ""), PARAMS.get("fondo", ""))

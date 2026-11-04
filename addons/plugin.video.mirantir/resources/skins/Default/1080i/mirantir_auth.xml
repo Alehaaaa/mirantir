@@ -15,39 +15,26 @@
       </control>
       <control type="label" id="100">
         <left>20</left><top>30</top><width>560</width><height>50</height>
-        <align>center</align><font>font45</font><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
+        <align>center</align><font>font16</font><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
       </control>
       <control type="image" id="101">
         <left>150</left><top>100</top><width>300</width><height>300</height>
         <aspectratio>keep</aspectratio>
       </control>
-      <control type="label" id="102">
-        <left>20</left><top>420</top><width>560</width><height>40</height>
-        <align>center</align><font>font12</font><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
-      </control>
-      <control type="label" id="103">
-        <left>20</left><top>468</top><width>560</width><height>60</height>
-        <align>center</align><font>font45</font><textcolor>FFFFD400</textcolor><shadowcolor>FF000000</shadowcolor>
+      <control type="textbox" id="107">
+        <left>20</left><top>410</top><width>560</width><height>255</height>
+        <align>center</align><font>font13</font><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
       </control>
       <control type="progress" id="104">
-        <left>60</left><top>560</top><width>480</width><height>22</height>
+        <left>60</left><top>670</top><width>480</width><height>22</height>
         <texturebg>progress_bg.png</texturebg>
         <lefttexture>-</lefttexture>
         <midtexture>progress_fill.png</midtexture>
         <righttexture>-</righttexture>
         <overlaytexture>-</overlaytexture>
       </control>
-      <control type="label" id="105">
-        <left>20</left><top>596</top><width>560</width><height>40</height>
-        <align>center</align><font>font14</font><textcolor>FF66CCFF</textcolor><shadowcolor>FF000000</shadowcolor>
-      </control>
-      <control type="label" id="106">
-        <left>20</left><top>644</top><width>560</width><height>40</height>
-        <align>center</align><font>font13</font><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
-        <label>$LOCALIZE[32075]</label>
-      </control>
       <control type="button" id="500">
-        <left>200</left><top>720</top><width>200</width><height>60</height>
+        <left>200</left><top>730</top><width>200</width><height>60</height>
         <align>center</align><aligny>center</aligny>
         <font>font14</font><textcolor>FFFFFFFF</textcolor><focusedcolor>FFFFFFFF</focusedcolor><disabledcolor>FFAAAAAA</disabledcolor><shadowcolor>FF000000</shadowcolor>
         <texturefocus border="2">button.png</texturefocus>
