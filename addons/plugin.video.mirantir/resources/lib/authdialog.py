@@ -21,9 +21,22 @@ _ACTION_CANCEL = (9, 10, 92)   # parent dir / previous menu / nav back
 C_HEAD, C_QR, C_URL, C_CODE, C_BAR, C_COUNT, C_STATUS, C_CANCEL = \
     100, 101, 102, 103, 104, 105, 106, 500
 
+_ENGLISH_FALLBACK = {
+    32069: "Error: {0}",
+    32073: "Connect {0}",
+    32074: "Visit: {0}",
+    32075: "Waiting for confirmation...",
+    32076: "New code in {0}s",
+    32077: "Connected!",
+    32078: "Generating a new code...",
+    32079: "Could not generate a code",
+    32080: "Could not start the connection",
+    32081: "Could not open the dialog: {0}",
+}
+
 
 def _tr(addon, string_id, *values):
-    text = addon.getLocalizedString(string_id)
+    text = addon.getLocalizedString(string_id) or _ENGLISH_FALLBACK.get(string_id, "")
     return text.format(*values) if values else text
 
 
@@ -50,6 +63,7 @@ class AuthDialog(xbmcgui.WindowXMLDialog):
         self._stop = False
         self._qr_file = os.path.join(tempfile.gettempdir(), "mirantir_qr.png")
         self._set(C_HEAD, _tr(self.addon, 32073, self.flow.name))
+        self._set(C_CANCEL, xbmc.getLocalizedString(222) or "Cancel")
         self._refresh_display()
         threading.Thread(target=self._worker).start()
 

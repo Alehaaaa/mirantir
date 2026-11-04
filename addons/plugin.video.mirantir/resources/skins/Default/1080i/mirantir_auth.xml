@@ -16,7 +16,6 @@
       <control type="label" id="100">
         <left>20</left><top>30</top><width>560</width><height>50</height>
         <align>center</align><font>font45</font><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
-        <label>$LOCALIZE[32082]</label>
       </control>
       <control type="image" id="101">
         <left>150</left><top>100</top><width>300</width><height>300</height>
@@ -24,7 +23,7 @@
       </control>
       <control type="label" id="102">
         <left>20</left><top>420</top><width>560</width><height>40</height>
-        <align>center</align><font>font14</font><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
+        <align>center</align><font>font12</font><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
       </control>
       <control type="label" id="103">
         <left>20</left><top>468</top><width>560</width><height>60</height>
@@ -50,8 +49,7 @@
       <control type="button" id="500">
         <left>200</left><top>720</top><width>200</width><height>60</height>
         <align>center</align><aligny>center</aligny>
-        <font>font14</font><textcolor>FFFFFFFF</textcolor><shadowcolor>FF000000</shadowcolor>
-        <label>$LOCALIZE[222]</label>
+        <font>font14</font><textcolor>FFFFFFFF</textcolor><focusedcolor>FFFFFFFF</focusedcolor><disabledcolor>FFAAAAAA</disabledcolor><shadowcolor>FF000000</shadowcolor>
         <texturefocus border="2">button.png</texturefocus>
         <texturenofocus border="2">panel.png</texturenofocus>
       </control>
