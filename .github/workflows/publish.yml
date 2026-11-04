@@ -15,7 +15,7 @@ permissions:
 
 concurrency:
   group: publish-kodi-repository
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   publish:
@@ -43,4 +43,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add addons.xml addons.xml.md5 index.html '*.zip' zips
           git commit -m "Build Kodi repository updates"
+          git pull --rebase origin main
           git push
