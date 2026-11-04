@@ -53,6 +53,11 @@ def main() -> int:
     auth = (ADDON / "resources/lib/authdialog.py").read_text()
     assert "xbmcgui.DialogProgress()" in auth
     assert "WindowXMLDialog" not in auth
+    viewtypes = (ADDON / "resources/lib/viewtypes.py").read_text()
+    for page_type in ("menus", "movies", "tvshows", "mixed", "seasons", "episodes"):
+        assert f'"{page_type}"' in viewtypes
+    service = (ADDON / "service.py").read_text()
+    assert "monitor_viewtypes()" in service
     missing = used_ids - translations["resource.language.en_gb"]
     assert not missing, f"Missing translations for string IDs: {sorted(missing)}"
     print(f"Validated Mirantir {metadata.attrib['version']} and TMDb Helper player schema")

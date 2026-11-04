@@ -4,6 +4,7 @@
 import json
 import os
 import sys
+import time
 from datetime import datetime, timedelta
 
 import xbmc
@@ -18,6 +19,7 @@ if LIB not in sys.path:
 
 from player_integration import sync_player  # noqa: E402
 import source  # noqa: E402
+import viewtypes  # noqa: E402
 
 PROFILE = xbmcvfs.translatePath(ADDON.getAddonInfo("profile"))
 DB_PATH = os.path.join(PROFILE, "moria.cm3")
@@ -80,6 +82,31 @@ def update_catalogue(show_progress=False):
             dialog.close()
 
 
+def monitor_viewtypes():
+    """Persist the selected skin view separately for every page type."""
+    monitor = xbmc.Monitor()
+    last = (None, None)
+    observed_type = None
+    settle_until = 0.0
+    while not monitor.abortRequested():
+        folder = xbmc.getInfoLabel("Container.FolderPath")
+        if folder.startswith("plugin://plugin.video.mirantir"):
+            page_type = viewtypes.active_page_type()
+            if page_type != observed_type:
+                observed_type = page_type
+                settle_until = time.monotonic() + 1.5
+            view_id = viewtypes.current_view_id()
+            current = (page_type, view_id)
+            if time.monotonic() >= settle_until and view_id and current != last:
+                viewtypes.remember(ADDON, page_type, view_id)
+                last = current
+        else:
+            last = (None, None)
+            observed_type = None
+        if monitor.waitForAbort(0.75):
+            break
+
+
 def run():
     sync_player(ADDON.getAddonInfo("path"))
     if check_due():
@@ -87,6 +114,7 @@ def run():
             update_catalogue(show_progress=True)
         except Exception as exc:
             log("catalogue update failed:", exc)
+    monitor_viewtypes()
 
 
 if __name__ == "__main__":
