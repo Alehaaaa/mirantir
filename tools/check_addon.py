@@ -50,8 +50,9 @@ def main() -> int:
     settings = ET.parse(ADDON / "resources" / "settings.xml")
     used_ids.update(int(node.attrib["label"]) for node in settings.iter()
                     if node.attrib.get("label", "").isdigit() and int(node.attrib["label"]) >= 32000)
-    skin = (ADDON / "resources/skins/Default/1080i/mirantir_auth.xml").read_text()
-    used_ids.update(int(value) for value in re.findall(r'\$LOCALIZE\[(32\d{3})\]', skin))
+    auth = (ADDON / "resources/lib/authdialog.py").read_text()
+    assert "xbmcgui.DialogProgress()" in auth
+    assert "WindowXMLDialog" not in auth
     missing = used_ids - translations["resource.language.en_gb"]
     assert not missing, f"Missing translations for string IDs: {sorted(missing)}"
     print(f"Validated Mirantir {metadata.attrib['version']} and TMDb Helper player schema")

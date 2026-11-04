@@ -37,6 +37,7 @@ PARAMS = dict(urllib.parse.parse_qsl(sys.argv[2][1:])) if len(sys.argv) > 2 else
 PROFILE = xbmcvfs.translatePath("special://profile/addon_data/%s/" % ADDON_ID)
 DB_PATH = os.path.join(PROFILE, "moria.cm3")
 STATE_PATH = os.path.join(PROFILE, "state.json")
+VIEWS_PATH = os.path.join(PROFILE, "views.json")
 ADDON_PATH_T = xbmcvfs.translatePath(ADDON_PATH)
 WIN = xbmcgui.Window(10000)
 
@@ -87,6 +88,61 @@ def notify(msg, heading="Mirantir", icon=xbmcgui.NOTIFICATION_INFO, ms=4000):
 
 def url(**kw):
     return BASE + "?" + urllib.parse.urlencode(kw)
+
+
+def _view_key(kind, **filters):
+    """Stable identity for a catalogue page; deliberately excludes offset."""
+    parts = [kind]
+    for key in sorted(filters):
+        value = filters[key]
+        if value not in (None, ""):
+            parts.append("%s=%s" % (key, value))
+    return "|".join(parts)
+
+
+def _saved_views():
+    try:
+        with open(VIEWS_PATH, "r", encoding="utf-8") as view_file:
+            data = json.load(view_file)
+            return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _remember_view(key):
+    """Capture the active skin's container control before changing page."""
+    view_id = _int(xbmc.getInfoLabel("System.CurrentControlID"), 0)
+    if view_id < 50 or view_id > 9999:
+        return
+    views = _saved_views()
+    views[key] = view_id
+    try:
+        os.makedirs(PROFILE, exist_ok=True)
+        with open(VIEWS_PATH, "w", encoding="utf-8") as view_file:
+            json.dump(views, view_file, sort_keys=True)
+    except Exception as exc:
+        _log("view save error:", exc)
+
+
+def _end_directory(view_key=None):
+    xbmcplugin.endOfDirectory(HANDLE)
+    if view_key:
+        view_id = _int(_saved_views().get(view_key), 0)
+        if view_id:
+            xbmc.executebuiltin("Container.SetViewMode(%d)" % view_id)
+
+
+def _add_next(params, view_key):
+    """Route pagination through a tiny handoff that remembers the view."""
+    add_dir(tr(32036), {"mode": "paginate", "target": urllib.parse.urlencode(params),
+                        "view_key": view_key})
+
+
+def paginate(target, view_key):
+    _remember_view(view_key)
+    xbmcplugin.endOfDirectory(HANDLE, succeeded=True, updateListing=True,
+                              cacheToDisc=False)
+    xbmc.executebuiltin("Container.Update(%s?%s,replace)" % (BASE, target))
 
 
 def _fail_resolve():
@@ -259,6 +315,7 @@ def root():
 
 
 def section_listing(section, offset=0):
+    view_key = _view_key("section", section=section)
     limit = page_size()
     rows = db.list_section(DB_PATH, section, offset, limit)
     xbmcplugin.setContent(HANDLE, "videos")
@@ -288,9 +345,9 @@ def section_listing(section, offset=0):
                       "fondo": row.get("fondo") or ""}
             add_dir(row.get("titulo"), params, art=art, info=info)
     if more:
-        add_dir(tr(32036), {"mode": "section", "section": section,
-                "offset": offset + limit})
-    xbmcplugin.endOfDirectory(HANDLE)
+        _add_next({"mode": "section", "section": section,
+                   "offset": offset + limit}, view_key)
+    _end_directory(view_key)
 
 
 def cats(mtype):
@@ -373,6 +430,10 @@ def qualities(group=None):
 def listing(mtype, cat=None, genre=None, search=None, offset=0, group=None,
             year_value=None, sort="updated", letter=None, quality_value=None,
             collection=None):
+    view_key = _view_key("list", type=mtype, cat=cat, genre=genre,
+                         search=search, group=group, year=year_value,
+                         sort=sort, letter=letter, quality=quality_value,
+                         collection=collection)
     limit = page_size()
     cats_filter = _group_cats(group) if group else None
     if mtype == "movie":
@@ -415,8 +476,8 @@ def listing(mtype, cat=None, genre=None, search=None, offset=0, group=None,
             if locals().get(k):
                 key = {"year_value": "year", "quality_value": "quality"}.get(k, k)
                 nxt[key] = locals()[k]
-        add_dir(tr(32036), nxt)
-    xbmcplugin.endOfDirectory(HANDLE)
+        _add_next(nxt, view_key)
+    _end_directory(view_key)
 
 
 def seasons(tmdb, title, poster="", fondo=""):
@@ -667,6 +728,8 @@ def _dispatch(mode):
         cats(PARAMS["type"])
     elif mode == "section":
         section_listing(PARAMS["section"], _int(PARAMS.get("offset", 0)))
+    elif mode == "paginate":
+        paginate(PARAMS.get("target", ""), PARAMS.get("view_key", ""))
     elif mode == "genres":
         genres(PARAMS["type"], PARAMS.get("group"))
     elif mode == "years":
