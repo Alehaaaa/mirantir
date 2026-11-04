@@ -9,7 +9,6 @@ mutual fallbacks. Self-contained — no external server.
 
 import json
 import os
-import re
 import sys
 import urllib.parse
 
@@ -231,11 +230,9 @@ def add_dir(label, params, art=None, info=None, playable=False, folder=True):
     if info:
         _set_info(li, info)
     elif label:
-        # Some skins, including Arctic Fuse 3, render ListItem.Title rather
-        # than ListItem.Label in folder views. Populate both consistently.
-        title = re.sub(r"\[/?(?:B|I|COLOR(?: [^\]]+)?)\]", "", label,
-                       flags=re.IGNORECASE)
-        _set_info(li, {"title": title})
+        # Folder labels stay plain and skin-neutral. Some skins render Title
+        # instead of Label, so provide the same unformatted text in both.
+        _set_info(li, {"title": label})
     if playable:
         li.setProperty("IsPlayable", "true")
     try:
@@ -252,7 +249,7 @@ def root():
                               ("soaps", 32109), ("cartoons", 32100),
                               ("anime", 32101), ("music", 32102),
                               ("documentaries", 32103)):
-        add_dir("[B]%s[/B]" % tr(label_id),
+        add_dir(tr(label_id),
                 {"mode": "section", "section": section})
     add_dir(tr(32032), {"mode": "search", "type": "movie"})
     add_dir(tr(32033), {"mode": "search", "type": "series"})
@@ -290,7 +287,7 @@ def section_listing(section, offset=0):
                       "fondo": row.get("fondo") or ""}
             add_dir(row.get("titulo"), params, art=art, info=info)
     if more:
-        add_dir("[B]%s[/B]" % tr(32036), {"mode": "section", "section": section,
+        add_dir(tr(32036), {"mode": "section", "section": section,
                 "offset": offset + limit})
     xbmcplugin.endOfDirectory(HANDLE)
 
@@ -346,7 +343,7 @@ def listing(mtype, cat=None, genre=None, search=None, offset=0):
         for k in ("cat", "genre", "search"):
             if locals().get(k):
                 nxt[k] = locals()[k]
-        add_dir("[B]%s[/B]" % tr(32036), nxt)
+        add_dir(tr(32036), nxt)
     xbmcplugin.endOfDirectory(HANDLE)
 
 

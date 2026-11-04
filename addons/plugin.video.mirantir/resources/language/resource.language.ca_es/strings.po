@@ -10,240 +10,319 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+
 msgctxt "#32000"
 msgid "Player"
 msgstr "Reproductor"
+
 msgctxt "#32001"
 msgid "Autoplay best source"
 msgstr "Reproducció automàtica (millor font)"
+
 msgctxt "#32002"
 msgid "Enable 4K"
 msgstr "Activa 4K"
+
 msgctxt "#32003"
 msgid "Enable Dolby Vision (DV)"
 msgstr "Activa Dolby Vision (DV)"
+
 msgctxt "#32004"
 msgid "Debrid"
 msgstr "Debrid"
+
 msgctxt "#32005"
 msgid "Connect AllDebrid (QR)"
 msgstr "Connecta AllDebrid (QR)"
+
 msgctxt "#32006"
 msgid "AllDebrid API key"
 msgstr "Clau API d'AllDebrid"
+
 msgctxt "#32007"
 msgid "Connect RealDebrid (QR)"
 msgstr "Connecta RealDebrid (QR)"
+
 msgctxt "#32008"
 msgid "RealDebrid token"
 msgstr "Testimoni de RealDebrid"
+
 msgctxt "#32009"
 msgid "Catalogue"
 msgstr "Catàleg"
+
 msgctxt "#32010"
 msgid "Check for updates at startup"
 msgstr "Comprova si hi ha actualitzacions en iniciar"
+
 msgctxt "#32011"
 msgid "Items per page"
 msgstr "Elements per pàgina"
+
 msgctxt "#32012"
 msgid "Update database now"
 msgstr "Actualitza ara la base de dades"
+
 msgctxt "#32013"
 msgid "Repair TMDb Helper player"
 msgstr "Repara el reproductor de TMDb Helper"
+
 msgctxt "#32020"
 msgid "Finding catalogue database…"
 msgstr "S'està cercant la base de dades…"
+
 msgctxt "#32021"
 msgid "Downloading catalogue {0}/{1} MB"
 msgstr "S'està baixant el catàleg {0}/{1} MB"
+
 msgctxt "#32022"
 msgid "Catalogue updated ({0})"
 msgstr "Catàleg actualitzat ({0})"
+
 msgctxt "#32023"
 msgid "Could not download the catalogue:\n{0}"
 msgstr "No s'ha pogut baixar el catàleg:\n{0}"
+
 msgctxt "#32024"
 msgid "Could not check for updates; using the local copy"
 msgstr "No s'han pogut comprovar les actualitzacions; s'utilitzarà la còpia local"
+
 msgctxt "#32025"
 msgid "Update check failed: {0}"
 msgstr "No s'ha pogut comprovar: {0}"
+
 msgctxt "#32026"
 msgid "Already up to date ({0})"
 msgstr "Ja està actualitzat ({0})"
+
 msgctxt "#32030"
 msgid "Movies"
 msgstr "Pel·lícules"
+
 msgctxt "#32031"
 msgid "TV shows"
 msgstr "Sèries"
+
 msgctxt "#32032"
 msgid "Search movies"
 msgstr "Cerca pel·lícules"
+
 msgctxt "#32033"
 msgid "Search TV shows"
 msgstr "Cerca sèries"
+
 msgctxt "#32034"
 msgid "Recently added"
 msgstr "Novetats"
+
 msgctxt "#32035"
 msgid "By genre…"
 msgstr "Per gènere…"
+
 msgctxt "#32036"
 msgid "Next »"
 msgstr "Següent »"
+
 msgctxt "#32037"
 msgid "Specials"
 msgstr "Especials"
+
 msgctxt "#32038"
 msgid "Season {0}"
 msgstr "Temporada {0}"
+
 msgctxt "#32039"
 msgid "Episode {0}"
 msgstr "Episodi {0}"
+
 msgctxt "#32040"
 msgid "Connect a debrid service to play"
 msgstr "Configura un servei debrid per reproduir"
+
 msgctxt "#32041"
 msgid "{0} connected"
 msgstr "{0} connectat"
+
 msgctxt "#32042"
 msgid "Resolving…"
 msgstr "S'està resolent…"
+
 msgctxt "#32043"
 msgid "Trying {0}…"
 msgstr "S'està provant {0}…"
+
 msgctxt "#32044"
 msgid "source"
 msgstr "font"
+
 msgctxt "#32045"
 msgid "Invalid sources: {0} found, but none could be decrypted."
 msgstr "Fonts no vàlides: se n'han trobat {0}, però no se n'ha pogut desxifrar cap."
+
 msgctxt "#32046"
 msgid "Unavailable: every provider refused the sources ({0}/{1}). {2}"
 msgstr "No disponible: tots els proveïdors han rebutjat les fonts ({0}/{1}). {2}"
+
 msgctxt "#32047"
 msgid "Try AllDebrid."
 msgstr "Prova AllDebrid."
+
 msgctxt "#32048"
 msgid "Unavailable: tried {0} sources, but none returned a playable link."
 msgstr "No disponible: s'han provat {0} fonts, però cap ha retornat un enllaç reproduïble."
+
 msgctxt "#32049"
 msgid "Invalid identifier"
 msgstr "Identificador no vàlid"
+
 msgctxt "#32050"
 msgid "Could not query the local catalogue: {0}"
 msgstr "No s'ha pogut consultar el catàleg local: {0}"
+
 msgctxt "#32051"
 msgid "this movie"
 msgstr "aquesta pel·lícula"
+
 msgctxt "#32052"
 msgid "this episode (S{0} E{1})"
 msgstr "aquest episodi (T{0} E{1})"
+
 msgctxt "#32053"
 msgid "Unavailable: Mirantir has no sources for {0}."
 msgstr "No disponible: Mirantir no té fonts per a {0}."
+
 msgctxt "#32054"
 msgid "Playback cancelled: no debrid service is connected."
 msgstr "Reproducció cancel·lada: no hi ha cap servei debrid connectat."
+
 msgctxt "#32055"
 msgid "Choose version"
 msgstr "Tria una versió"
+
 msgctxt "#32056"
 msgid "Playback cancelled: no source was selected."
 msgstr "Reproducció cancel·lada: no has seleccionat cap font."
+
 msgctxt "#32057"
 msgid "Search {0}"
 msgstr "Cerca {0}"
+
 msgctxt "#32058"
-msgid "In Arctic Horizon / Arctic Fuse, open a title, press play, and choose [B]Mirantir[/B]."
-msgstr "A Arctic Horizon / Arctic Fuse, obre un títol, prem reproduir i tria [B]Mirantir[/B]."
+msgid "In Arctic Horizon / Arctic Fuse, open a title, press play, and choose Mirantir."
+msgstr "A Arctic Horizon / Arctic Fuse, obre un títol, prem reproduir i tria Mirantir."
+
 msgctxt "#32059"
 msgid "Could not configure TMDb Helper:\n{0}"
 msgstr "No s'ha pogut configurar TMDb Helper:\n{0}"
+
 msgctxt "#32060"
 msgid "session expired"
 msgstr "sessió caducada"
+
 msgctxt "#32061"
 msgid "host unavailable"
 msgstr "servidor no disponible"
+
 msgctxt "#32062"
 msgid "unsupported host"
 msgstr "servidor no compatible"
+
 msgctxt "#32063"
 msgid "unsupported link"
 msgstr "enllaç no compatible"
+
 msgctxt "#32064"
 msgid "traffic exhausted"
 msgstr "trànsit exhaurit"
+
 msgctxt "#32065"
 msgid "permission denied"
 msgstr "permís denegat"
+
 msgctxt "#32066"
 msgid "link is offline"
 msgstr "enllaç fora de línia"
+
 msgctxt "#32067"
 msgid "account limit reached"
 msgstr "s'ha assolit el límit del compte"
+
 msgctxt "#32068"
 msgid "invalid session"
 msgstr "sessió no vàlida"
+
 msgctxt "#32069"
 msgid "Error: {0}"
 msgstr "Error: {0}"
+
 msgctxt "#32070"
 msgid "TMDb Helper player updated"
 msgstr "Reproductor de TMDb Helper actualitzat"
+
 msgctxt "#32071"
 msgid "The TMDb Helper player is already current"
 msgstr "El reproductor de TMDb Helper ja està actualitzat"
+
 msgctxt "#32072"
 msgid "TMDb Helper is not installed"
 msgstr "TMDb Helper no està instal·lat"
+
 msgctxt "#32073"
 msgid "Connect {0}"
 msgstr "Connecta {0}"
+
 msgctxt "#32074"
 msgid "Visit: {0}"
 msgstr "Visita: {0}"
+
 msgctxt "#32075"
 msgid "Waiting for confirmation…"
 msgstr "S'està esperant la confirmació…"
+
 msgctxt "#32076"
 msgid "New code in {0}s"
 msgstr "Codi nou d'aquí a {0}s"
+
 msgctxt "#32077"
 msgid "Connected!"
 msgstr "Connectat!"
+
 msgctxt "#32078"
 msgid "Generating a new code…"
 msgstr "S'està generant un codi nou…"
+
 msgctxt "#32079"
 msgid "Could not generate a code"
 msgstr "No s'ha pogut generar el codi"
+
 msgctxt "#32080"
 msgid "Could not start the connection"
 msgstr "No s'ha pogut iniciar la connexió"
+
 msgctxt "#32081"
 msgid "Could not open the dialog: {0}"
 msgstr "No s'ha pogut obrir el diàleg: {0}"
+
 msgctxt "#32082"
 msgid "Connect"
 msgstr "Connecta"
+
 msgctxt "#32100"
 msgid "Cartoons"
 msgstr "Dibuixos"
+
 msgctxt "#32101"
 msgid "Anime"
 msgstr "Anime"
+
 msgctxt "#32102"
 msgid "Music"
 msgstr "Música"
+
 msgctxt "#32103"
 msgid "Documentaries"
 msgstr "Documentals"
+
 msgctxt "#32109"
 msgid "Soap operas"
 msgstr "Telenovel·les"

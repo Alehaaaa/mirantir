@@ -10,240 +10,319 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+
 msgctxt "#32000"
 msgid "Player"
 msgstr "Reproductor"
+
 msgctxt "#32001"
 msgid "Autoplay best source"
 msgstr "Reproducción automática (mejor fuente)"
+
 msgctxt "#32002"
 msgid "Enable 4K"
 msgstr "Habilitar 4K"
+
 msgctxt "#32003"
 msgid "Enable Dolby Vision (DV)"
 msgstr "Habilitar Dolby Vision (DV)"
+
 msgctxt "#32004"
 msgid "Debrid"
 msgstr "Debrid"
+
 msgctxt "#32005"
 msgid "Connect AllDebrid (QR)"
 msgstr "Conectar AllDebrid (QR)"
+
 msgctxt "#32006"
 msgid "AllDebrid API key"
 msgstr "Clave API de AllDebrid"
+
 msgctxt "#32007"
 msgid "Connect RealDebrid (QR)"
 msgstr "Conectar RealDebrid (QR)"
+
 msgctxt "#32008"
 msgid "RealDebrid token"
 msgstr "Token de RealDebrid"
+
 msgctxt "#32009"
 msgid "Catalogue"
 msgstr "Catálogo"
+
 msgctxt "#32010"
 msgid "Check for updates at startup"
 msgstr "Comprobar actualizaciones al iniciar"
+
 msgctxt "#32011"
 msgid "Items per page"
 msgstr "Elementos por página"
+
 msgctxt "#32012"
 msgid "Update database now"
 msgstr "Actualizar base de datos ahora"
+
 msgctxt "#32013"
 msgid "Repair TMDb Helper player"
 msgstr "Reparar reproductor de TMDb Helper"
+
 msgctxt "#32020"
 msgid "Finding catalogue database…"
 msgstr "Buscando base de datos…"
+
 msgctxt "#32021"
 msgid "Downloading catalogue {0}/{1} MB"
 msgstr "Descargando catálogo {0}/{1} MB"
+
 msgctxt "#32022"
 msgid "Catalogue updated ({0})"
 msgstr "Catálogo actualizado ({0})"
+
 msgctxt "#32023"
 msgid "Could not download the catalogue:\n{0}"
 msgstr "No se pudo descargar el catálogo:\n{0}"
+
 msgctxt "#32024"
 msgid "Could not check for updates; using the local copy"
 msgstr "No se pudieron comprobar las actualizaciones; se usará la copia local"
+
 msgctxt "#32025"
 msgid "Update check failed: {0}"
 msgstr "No se pudo comprobar: {0}"
+
 msgctxt "#32026"
 msgid "Already up to date ({0})"
 msgstr "Ya está actualizado ({0})"
+
 msgctxt "#32030"
 msgid "Movies"
 msgstr "Películas"
+
 msgctxt "#32031"
 msgid "TV shows"
 msgstr "Series"
+
 msgctxt "#32032"
 msgid "Search movies"
 msgstr "Buscar películas"
+
 msgctxt "#32033"
 msgid "Search TV shows"
 msgstr "Buscar series"
+
 msgctxt "#32034"
 msgid "Recently added"
 msgstr "Novedades"
+
 msgctxt "#32035"
 msgid "By genre…"
 msgstr "Por género…"
+
 msgctxt "#32036"
 msgid "Next »"
 msgstr "Siguiente »"
+
 msgctxt "#32037"
 msgid "Specials"
 msgstr "Especiales"
+
 msgctxt "#32038"
 msgid "Season {0}"
 msgstr "Temporada {0}"
+
 msgctxt "#32039"
 msgid "Episode {0}"
 msgstr "Episodio {0}"
+
 msgctxt "#32040"
 msgid "Connect a debrid service to play"
 msgstr "Configura un servicio debrid para reproducir"
+
 msgctxt "#32041"
 msgid "{0} connected"
 msgstr "{0} conectado"
+
 msgctxt "#32042"
 msgid "Resolving…"
 msgstr "Resolviendo…"
+
 msgctxt "#32043"
 msgid "Trying {0}…"
 msgstr "Probando {0}…"
+
 msgctxt "#32044"
 msgid "source"
 msgstr "fuente"
+
 msgctxt "#32045"
 msgid "Invalid sources: {0} found, but none could be decrypted."
 msgstr "Fuentes no válidas: se encontraron {0}, pero ninguna pudo descifrarse."
+
 msgctxt "#32046"
 msgid "Unavailable: every provider refused the sources ({0}/{1}). {2}"
 msgstr "No disponible: todos los proveedores rechazaron las fuentes ({0}/{1}). {2}"
+
 msgctxt "#32047"
 msgid "Try AllDebrid."
 msgstr "Prueba AllDebrid."
+
 msgctxt "#32048"
 msgid "Unavailable: tried {0} sources, but none returned a playable link."
 msgstr "No disponible: se probaron {0} fuentes, pero ninguna devolvió un enlace reproducible."
+
 msgctxt "#32049"
 msgid "Invalid identifier"
 msgstr "Identificador no válido"
+
 msgctxt "#32050"
 msgid "Could not query the local catalogue: {0}"
 msgstr "No se pudo consultar el catálogo local: {0}"
+
 msgctxt "#32051"
 msgid "this movie"
 msgstr "esta película"
+
 msgctxt "#32052"
 msgid "this episode (S{0} E{1})"
 msgstr "este episodio (T{0} E{1})"
+
 msgctxt "#32053"
 msgid "Unavailable: Mirantir has no sources for {0}."
 msgstr "No disponible: Mirantir no tiene fuentes para {0}."
+
 msgctxt "#32054"
 msgid "Playback cancelled: no debrid service is connected."
 msgstr "Reproducción cancelada: no hay un servicio debrid conectado."
+
 msgctxt "#32055"
 msgid "Choose version"
 msgstr "Elige versión"
+
 msgctxt "#32056"
 msgid "Playback cancelled: no source was selected."
 msgstr "Reproducción cancelada: no seleccionaste una fuente."
+
 msgctxt "#32057"
 msgid "Search {0}"
 msgstr "Buscar {0}"
+
 msgctxt "#32058"
-msgid "In Arctic Horizon / Arctic Fuse, open a title, press play, and choose [B]Mirantir[/B]."
-msgstr "En Arctic Horizon / Arctic Fuse, abre un título, pulsa reproducir y elige [B]Mirantir[/B]."
+msgid "In Arctic Horizon / Arctic Fuse, open a title, press play, and choose Mirantir."
+msgstr "En Arctic Horizon / Arctic Fuse, abre un título, pulsa reproducir y elige Mirantir."
+
 msgctxt "#32059"
 msgid "Could not configure TMDb Helper:\n{0}"
 msgstr "No se pudo configurar TMDb Helper:\n{0}"
+
 msgctxt "#32060"
 msgid "session expired"
 msgstr "sesión caducada"
+
 msgctxt "#32061"
 msgid "host unavailable"
 msgstr "servidor no disponible"
+
 msgctxt "#32062"
 msgid "unsupported host"
 msgstr "servidor no compatible"
+
 msgctxt "#32063"
 msgid "unsupported link"
 msgstr "enlace no compatible"
+
 msgctxt "#32064"
 msgid "traffic exhausted"
 msgstr "tráfico agotado"
+
 msgctxt "#32065"
 msgid "permission denied"
 msgstr "permiso denegado"
+
 msgctxt "#32066"
 msgid "link is offline"
 msgstr "enlace caído"
+
 msgctxt "#32067"
 msgid "account limit reached"
 msgstr "límite de cuenta alcanzado"
+
 msgctxt "#32068"
 msgid "invalid session"
 msgstr "sesión no válida"
+
 msgctxt "#32069"
 msgid "Error: {0}"
 msgstr "Error: {0}"
+
 msgctxt "#32070"
 msgid "TMDb Helper player updated"
 msgstr "Reproductor de TMDb Helper actualizado"
+
 msgctxt "#32071"
 msgid "The TMDb Helper player is already current"
 msgstr "El reproductor de TMDb Helper ya está actualizado"
+
 msgctxt "#32072"
 msgid "TMDb Helper is not installed"
 msgstr "TMDb Helper no está instalado"
+
 msgctxt "#32073"
 msgid "Connect {0}"
 msgstr "Conectar {0}"
+
 msgctxt "#32074"
 msgid "Visit: {0}"
 msgstr "Visita: {0}"
+
 msgctxt "#32075"
 msgid "Waiting for confirmation…"
 msgstr "Esperando confirmación…"
+
 msgctxt "#32076"
 msgid "New code in {0}s"
 msgstr "Nuevo código en {0}s"
+
 msgctxt "#32077"
 msgid "Connected!"
 msgstr "¡Conectado!"
+
 msgctxt "#32078"
 msgid "Generating a new code…"
 msgstr "Generando un código nuevo…"
+
 msgctxt "#32079"
 msgid "Could not generate a code"
 msgstr "No se pudo generar el código"
+
 msgctxt "#32080"
 msgid "Could not start the connection"
 msgstr "No se pudo iniciar la conexión"
+
 msgctxt "#32081"
 msgid "Could not open the dialog: {0}"
 msgstr "No se pudo abrir el diálogo: {0}"
+
 msgctxt "#32082"
 msgid "Connect"
 msgstr "Conectar"
+
 msgctxt "#32100"
 msgid "Cartoons"
 msgstr "Dibujos"
+
 msgctxt "#32101"
 msgid "Anime"
 msgstr "Anime"
+
 msgctxt "#32102"
 msgid "Music"
 msgstr "Música"
+
 msgctxt "#32103"
 msgid "Documentaries"
 msgstr "Documentales"
+
 msgctxt "#32109"
 msgid "Soap operas"
 msgstr "Telenovelas"
