@@ -15,25 +15,32 @@ function json(data,status=200,privateData=false){
   'Content-Type':'application/json; charset=utf-8',
   'Cache-Control':privateData?'no-store':'public, max-age=120'}});
 }
-function html(content,status=200){
+function html(content,status=200,nonce=''){
  return new Response(content,{status,headers:{...HEADERS,
   'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store',
-  'Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'"}});
+  'Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-"+nonce+
+   "'; form-action 'self'; base-uri 'none'"}});
 }
 function page(content){
  return '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'+
- '<title>Mirantir Stremio</title><style>body{font:16px system-ui;background:#10141c;color:white;max-width:600px;margin:8vh auto;padding:20px}a{color:#8ac6ff}form{padding:20px;background:#1b2432;border-radius:12px}input,select,button{display:block;width:100%;padding:12px;margin:8px 0 20px;box-sizing:border-box}button{cursor:pointer}code{overflow-wrap:anywhere}small{color:#b4c3d5}</style>'+
- '<h1>Mirantir for Stremio</h1>'+content+'</html>';
+ '<meta name="theme-color" content="#12101d"><title>Mirantir for Stremio</title><style>'+
+ ':root{color-scheme:dark;--bg:#0d0b15;--card:#191625;--card2:#211d30;--text:#f7f5ff;--muted:#aaa4bc;--purple:#7b5cff;--purple2:#9b7cff;--line:#312b45;--green:#53d6a6}*{box-sizing:border-box}body{margin:0;min-height:100vh;font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(circle at 50% -15%,#302259 0,transparent 42%),linear-gradient(160deg,#0d0b15 0,#12101d 70%,#181128 100%);padding:48px 20px}main{width:min(680px,100%);margin:auto}.brand{display:flex;align-items:center;justify-content:center;gap:13px;margin-bottom:26px}.mark{display:grid;place-items:center;width:48px;height:48px;border-radius:15px;background:linear-gradient(145deg,var(--purple2),#5638dd);box-shadow:0 12px 35px #6e4cff55;font-size:24px}.brand strong{font-size:25px;letter-spacing:-.6px}.brand span{display:block;color:var(--muted);font-size:13px}.card{padding:30px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,#1c1829ee,#15121fee);box-shadow:0 24px 80px #0008;backdrop-filter:blur(14px)}h1,h2{margin:0 0 8px;letter-spacing:-.7px}h1{font-size:29px}h2{font-size:24px}.lead{color:var(--muted);margin:0 0 27px}.section{border-top:1px solid var(--line);padding-top:22px;margin-top:22px}.label,label>span{display:block;font-weight:650;margin-bottom:8px}input,select,button,.button{width:100%;min-height:48px;border:1px solid var(--line);border-radius:12px;background:#100e19;color:var(--text);padding:12px 14px;font:inherit;outline:none;transition:.18s ease}input:focus,select:focus{border-color:var(--purple2);box-shadow:0 0 0 3px #7b5cff26}select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,#aaa4bc 50%),linear-gradient(135deg,#aaa4bc 50%,transparent 50%);background-position:calc(100% - 19px) 21px,calc(100% - 14px) 21px;background-size:5px 5px;background-repeat:no-repeat}.field{margin-bottom:19px}.api-help{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-7px 0 20px;padding:12px 14px;border-radius:12px;background:#29213f;color:#dcd3ff}.api-help[hidden]{display:none}.api-help a{color:#bcaaff;font-weight:700;text-decoration:none;white-space:nowrap}.checks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 24px}.check{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#12101b;cursor:pointer}.check input{width:18px;min-height:18px;margin:0;accent-color:var(--purple)}.check span{margin:0;font-weight:550}.button,button{display:inline-flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;text-decoration:none;font-weight:750}.primary{border:0;background:linear-gradient(135deg,var(--purple2),#6041e8);box-shadow:0 10px 28px #7050ec3d}.primary:hover{filter:brightness(1.09);transform:translateY(-1px)}.secondary:hover{border-color:#6f5a9e;background:#181424}.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}.manifest{display:flex;align-items:center;min-height:50px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#0e0c16;color:#bbb4ce;overflow:hidden}.manifest code{font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.notice{color:var(--muted);font-size:13px;margin:18px 0 0}.ready{display:inline-flex;align-items:center;gap:8px;color:var(--green);font-weight:700;margin-bottom:10px}.dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 14px currentColor}.back{display:inline-block;color:#bcaaff;margin-top:22px;text-decoration:none}@media(max-width:540px){body{padding:24px 14px}.card{padding:22px}.checks,.actions{grid-template-columns:1fr}.brand{justify-content:flex-start}}</style>'+
+ '<main><header class="brand"><div class="mark" aria-hidden="true">▶</div><div><strong>Mirantir</strong><span>for Stremio</span></div></header><section class="card">'+content+'</section></main></html>';
 }
 const escapeHtml=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function configurePage(){
- return page('<p>Install the Mirantir movie and series catalogue. Streams require your own authorized debrid account.</p>'+
- '<form method="post" action="/configure"><label>Provider<select name="provider"><option value="none">Catalogue only</option>'+
- '<option value="rd">Real-Debrid</option><option value="ad">AllDebrid</option></select></label>'+
- '<label>Personal API key<input name="apiKey" type="password" maxlength="512" autocomplete="off"></label>'+
- '<label><input type="checkbox" name="hide4k" style="width:auto;display:inline"> Hide 4K</label>'+
- '<label><input type="checkbox" name="hideDv" style="width:auto;display:inline"> Hide Dolby Vision</label>'+
- '<button>Generate Stremio installation link</button></form><p><small>Your token is encrypted and the installation URL is a bearer secret. Do not share it.</small></p>');
+const makeNonce=()=>crypto.randomUUID().replaceAll('-','');
+function configurePage(nonce){
+ return page('<h1>Configure your addon</h1><p class="lead">Discover the Mirantir movie and series catalogue, then stream with your own debrid account.</p>'+
+ '<form method="post" action="/configure"><div class="field"><label><span>Debrid provider</span><select id="provider" name="provider">'+
+ '<option value="none">Catalogue only</option><option value="rd">Real-Debrid</option><option value="ad">AllDebrid</option></select></label></div>'+
+ '<div id="apiHelp" class="api-help" hidden><span id="apiHint">Get the API key from your provider.</span><a id="apiLink" href="#" target="_blank" rel="noreferrer">Open API page ↗</a></div>'+
+ '<div class="field"><label><span>Personal API key</span><input name="apiKey" type="password" maxlength="512" autocomplete="off" placeholder="Paste your private API key"></label></div>'+
+ '<div class="section"><span class="label">Stream filters</span><div class="checks">'+
+ '<label class="check"><input type="checkbox" name="hide4k"><span>Hide 4K</span></label>'+
+ '<label class="check"><input type="checkbox" name="hideDv"><span>Hide Dolby Vision</span></label></div></div>'+
+ '<button class="primary" type="submit">Generate installation link <span aria-hidden="true">→</span></button></form>'+
+ '<p class="notice">Your API key is encrypted into the installation URL. Treat that URL like a password and never share it.</p>'+
+ '<script nonce="'+nonce+'">const p=document.querySelector("#provider"),h=document.querySelector("#apiHelp"),t=document.querySelector("#apiHint"),a=document.querySelector("#apiLink");const providers={rd:{name:"Real-Debrid",url:"https://real-debrid.com/apitoken"},ad:{name:"AllDebrid",url:"https://alldebrid.com/apikeys/"}};function update(){const v=providers[p.value];h.hidden=!v;if(v){t.textContent="Open "+v.name+" to copy your API key.";a.href=v.url}}p.addEventListener("change",update);update()</script>');
 }
 async function configure(request,env){
  if(Number(request.headers.get('content-length')||0)>4096)
@@ -51,9 +58,14 @@ async function configure(request,env){
   url=new URL(request.url).origin+'/c/'+token+'/manifest.json';
  }
  const stremio=url.replace(/^https?:\/\//,'stremio://');
- return html(page('<h2>Stremio configuration ready</h2><p><a href="'+escapeHtml(stremio)+'">Install in Stremio</a></p>'+
-  '<p>Or paste the manifest URL:</p><p><code>'+escapeHtml(url)+'</code></p>'+
-  '<p><small>Keep this link private if it contains your account settings.</small></p>'));
+ const nonce=makeNonce();
+ return html(page('<div class="ready"><span class="dot"></span>Configuration ready</div><h2>Add Mirantir to Stremio</h2>'+
+  '<p class="lead">Open Stremio directly or copy the manifest link to install it on another device.</p>'+
+  '<span class="label">Manifest URL</span><div class="manifest"><code id="manifestUrl">'+escapeHtml(url)+'</code></div>'+
+  '<div class="actions"><a class="button primary" href="'+escapeHtml(stremio)+'">Open Stremio <span aria-hidden="true">↗</span></a>'+
+  '<button id="copyLink" class="secondary" type="button">Copy link</button></div>'+
+  '<p class="notice">Keep this link private if it contains your account settings.</p><a class="back" href="/configure">← Change configuration</a>'+
+  '<script nonce="'+nonce+'">const b=document.querySelector("#copyLink"),u=document.querySelector("#manifestUrl").textContent;b.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(u);b.textContent="Copied ✓"}catch{const r=document.createRange();r.selectNodeContents(document.querySelector("#manifestUrl"));getSelection().removeAllRanges();getSelection().addRange(r);b.textContent="Select and copy"}setTimeout(()=>b.textContent="Copy link",1800)})</script>'),200,nonce);
 }
 export default {
  async fetch(request,env){
@@ -64,7 +76,9 @@ export default {
    if(request.method==='GET'&&!parts.length)
     return html(page('<p>Cloudflare-hosted Stremio addon.</p><a href="/configure">Configure and install</a> · <a href="/manifest.json">Manifest</a>'));
    if(parts.length===1&&parts[0]==='configure'){
-    if(request.method==='GET')return html(configurePage());
+    if(request.method==='GET'){
+     const nonce=makeNonce();return html(configurePage(nonce),200,nonce);
+    }
     if(request.method==='POST')return configure(request,env);
    }
    if(request.method!=='GET')return json({error:'Method not allowed'},405);

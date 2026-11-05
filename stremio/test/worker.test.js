@@ -40,12 +40,28 @@ test('config credentials are encrypted and never printed',async()=>{
  assert.equal(response.status,200);
  const html=await response.text();
  assert(!html.includes('secret-real-debrid-key'));
+ assert.match(html,/href="stremio:\/\/stremio\.example\/c\//);
+ assert.match(html,/>Open Stremio </);
+ assert.match(html,/>Copy link</);
+ assert.match(html,/id="manifestUrl"/);
+ const nonce=html.match(/<script nonce="([a-f0-9]+)">/)[1];
+ assert(response.headers.get('Content-Security-Policy').includes("script-src 'nonce-"+nonce+"'"));
  const token=html.match(/\/c\/([\w-]+)\/manifest\.json/)[1];
  assert.equal((await unseal(token,secret)).apiKey,'secret-real-debrid-key');
  const configured=await worker.fetch(request('/c/'+token+'/manifest.json'),{DB:db(),CONFIG_KEY:secret});
  assert.equal(configured.status,200);
  assert.equal(configured.headers.get('Cache-Control'),'no-store');
  assert.equal((await worker.fetch(request('/c/invalid/manifest.json'),{DB:db(),CONFIG_KEY:secret})).status,401);
+});
+test('configuration page links to the selected provider API pages',async()=>{
+ const response=await worker.fetch(request('/configure'),{DB:db(),CONFIG_KEY:secret});
+ assert.equal(response.status,200);
+ const html=await response.text();
+ assert.match(html,/https:\/\/real-debrid\.com\/apitoken/);
+ assert.match(html,/https:\/\/alldebrid\.com\/apikeys\//);
+ assert.match(html,/Open API page/);
+ assert.match(html,/Generate installation link/);
+ assert.match(html,/@media\(max-width:540px\)/);
 });
 test('movies and search use local D1 SQL and parameter binding',async()=>{
  const database=db();
