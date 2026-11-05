@@ -5,7 +5,7 @@ Self-contained (stdlib only). Mirrors the addon's own distribution logic:
 the DB is published as moria_<ver>.zm3 in a GitHub repo — a ZIP whose 42-byte
 local-file header was stripped. We prepend the header, unzip the single
 'settings.xml' entry (= the SQLite file), and store it in the addon profile.
-A self-heal path re-derives the repo from the live addon if the source moves.
+The database API is discovered from original Palantir (source.txt or latest\nrelease), with persisted last-known-good fallback; no fixed database repo.
 """
 
 import base64
@@ -308,8 +308,10 @@ def update_required(db_path, state_path, info):
 def sync(db_path, state_path, force=False, progress=None, log=lambda *a: None,
          info=None):
     """Return (changed, info). Downloads only when the .zm3 sha changed."""
-    state = load_state(state_path)
     info = info or discover(state_path)
+    # Discovery may have updated source metadata; load state *afterwards* so
+    # synchronising the checksum does not wipe the latest source resolution.
+    state = load_state(state_path)
     if (not force and os.path.isfile(db_path)
             and state.get("sha") == info["sha"]):
         return False, info
