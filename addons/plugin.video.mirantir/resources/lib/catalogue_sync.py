@@ -186,9 +186,13 @@ def _index(db_path):
         for s in (
             "CREATE INDEX IF NOT EXISTS ix_pelis_cat ON pelis(categoria)",
             "CREATE INDEX IF NOT EXISTS ix_pelis_upd ON pelis(updated)",
+            "CREATE INDEX IF NOT EXISTS ix_pelis_cat_upd ON pelis(categoria,updated DESC)",
             "CREATE INDEX IF NOT EXISTS ix_series_cat ON series(categoria)",
+            "CREATE INDEX IF NOT EXISTS ix_series_upd ON series(updated DESC)",
+            "CREATE INDEX IF NOT EXISTS ix_series_cat_upd ON series(categoria,updated DESC)",
             "CREATE INDEX IF NOT EXISTS ix_ep_tmdb ON enlaces_pelis(tmdb)",
             "CREATE INDEX IF NOT EXISTS ix_es_tmdb ON enlaces_series(tmdb,temporada,episodio)",
+            "CREATE INDEX IF NOT EXISTS ix_es_tmdb_upd ON enlaces_series(tmdb,updated DESC)",
         ):
             conn.execute(s)
         conn.commit()
