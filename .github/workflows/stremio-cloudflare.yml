@@ -36,7 +36,7 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID" && test -n "$CLOUDFLARE_API_TOKEN" && test -n "$CF_D1_DATABASE_ID" && test -n "$STREMIO_CONFIG_KEY" || { echo "Set Cloudflare secrets; see stremio/README.md"; exit 1; }
           test "${#STREMIO_CONFIG_KEY}" -ge 32
       - name: Install, test and deploy
-        run: npm install --no-audit --no-fund && npm test && npm run deploy
+        run: npm ci --no-audit --no-fund && npm test && npm run deploy
       - name: Configure encryption secret
         run: printf '%s' "$STREMIO_CONFIG_KEY" | npx wrangler secret put CONFIG_KEY --config wrangler.generated.jsonc
 
@@ -63,7 +63,7 @@ jobs:
       - name: Check D1 credentials
         run: test -n "$CLOUDFLARE_API_TOKEN" && test -n "$CLOUDFLARE_ACCOUNT_ID" && test -n "$CF_D1_DATABASE_ID"
       - name: Install Wrangler
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Sync upstream and export D1 generation
         run: python scripts/export_catalogue.py --output .data/import
       - name: Stage SQL and activate only when complete

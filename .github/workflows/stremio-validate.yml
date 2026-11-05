@@ -20,7 +20,7 @@ jobs:
           python-version: "3.12"
       - name: Install Wrangler
         working-directory: stremio
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Worker HTTP tests
         working-directory: stremio
         run: npm test

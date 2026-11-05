@@ -15,7 +15,7 @@ updates and export SQL for D1. No database repository URL is hardcoded.
 2. From the repository root run:
 
     cd stremio
-    npm install
+    npm ci
     npx wrangler login
     npx wrangler d1 create mirantir-stremio
     export CF_D1_DATABASE_ID='paste-your-D1-database-UUID-here'
@@ -54,7 +54,7 @@ This feature branch does not deploy automatically.
 ## Development
 
     cd stremio
-    npm install
+    npm ci
     npm run config
     npx wrangler d1 migrations apply mirantir-stremio --local --config wrangler.generated.jsonc
     cp .dev.vars.example .dev.vars
