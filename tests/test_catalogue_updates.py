@@ -220,7 +220,7 @@ class CatalogueUpdateTests(unittest.TestCase):
             path = str(Path(tmp, "catalogue.sqlite"))
             make_db(path)
             catalogue._index(path)
-            with sqlite3.connect(path) as conn:
+            with closing(sqlite3.connect(path)) as conn:
                 for table, expected in (
                     ("pelis", "ix_pelis_cat_upd"),
                     ("series", "ix_series_cat_upd"),
