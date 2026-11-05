@@ -1,0 +1,35 @@
+name: Validate Stremio Worker
+
+on:
+  pull_request:
+    paths: ["stremio/**", ".github/workflows/stremio-*.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Wrangler
+        working-directory: stremio
+        run: npm install --no-audit --no-fund
+      - name: Worker HTTP tests
+        working-directory: stremio
+        run: npm test
+      - name: Compile catalogue exporter
+        working-directory: stremio
+        run: python -m py_compile scripts/export_catalogue.py
+      - name: Prepare Wrangler local config
+        working-directory: stremio
+        run: npm run config
+      - name: Bundle Worker without deploying
+        working-directory: stremio
+        run: npx wrangler deploy --dry-run --config wrangler.generated.jsonc
