@@ -23,7 +23,8 @@ run('d1','migrations','apply','mirantir-stremio',location,'--config','wrangler.g
 const state=JSON.parse(run('d1','execute','mirantir-stremio',location,
  '--config','wrangler.generated.jsonc','--json','--command',
  "SELECT value FROM catalogue_state WHERE key='active_generation'"));
-if(state?.[0]?.results?.[0]?.value===manifest.generation&&!process.argv.includes('--force')){
+const priorGeneration=state?.[0]?.results?.[0]?.value||'';
+if(priorGeneration===manifest.generation&&!process.argv.includes('--force')){
  console.log('Catalogue already up-to-date');process.exit(0);
 }
 for(const file of files){
@@ -32,3 +33,10 @@ for(const file of files){
   '--file',folder+'/'+file);
 }
 console.log('Activated '+manifest.generation);
+if(/^[a-f0-9]{24}$/.test(priorGeneration)&&priorGeneration!==manifest.generation){
+ const keep=`'${manifest.generation}','${priorGeneration}'`;
+ for(const table of ['catalogue_links','catalogue_episodes','catalogue_items'])
+  run('d1','execute','mirantir-stremio',location,'--config','wrangler.generated.jsonc',
+   '--command',`DELETE FROM ${table} WHERE generation NOT IN (${keep})`);
+ console.log('Pruned catalogue generations older than the previous active generation');
+}

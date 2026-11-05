@@ -45,9 +45,11 @@ Add these GitHub repository secrets before merging/deploying:
 - CF_D1_DATABASE_ID: existing D1 database UUID
 - STREMIO_CONFIG_KEY: random key of at least 32 characters
 
-The Cloudflare workflow deploys changes pushed to main and refreshes the
-catalogue at 08:00 and 20:00 UTC daily. The validation workflow performs
-Worker tests and a Wrangler dry run on pull requests.
+The Cloudflare workflow deploys changes pushed to main and checks the upstream
+catalogue generation once daily at 07:17 UTC. Unchanged generations stop after
+a small D1 state query and Git metadata check; the large database download,
+SQL export and D1 writes run only when the snapshot or patch hashes change.
+The validation workflow performs Worker tests and a Wrangler dry run on pull requests.
 
 This feature branch does not deploy automatically.
 
@@ -80,8 +82,9 @@ Identifiers: mirantir:movie:<tmdb>, mirantir:series:<tmdb>,
 and mirantir:series:<tmdb>:<season>:<episode> for episode streams.
 Catalogues support search and skip extras.
 
-D1 import only switches active_generation after successful staging.
-Older generations remain for rollback and should be periodically removed.
+D1 import only switches active_generation after successful staging and retains
+the previous generation for rollback. Generations older than that are pruned
+after activation so storage cannot grow without bound.
 The Worker does not proxy videos, store user API keys, or parse unsupported
 .p4u files. Actual Cloudflare deployment and live debrid playback still require
 account-level verification.

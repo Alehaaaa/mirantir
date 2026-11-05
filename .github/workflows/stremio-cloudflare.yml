@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths: ["stremio/**", ".github/workflows/stremio-cloudflare.yml"]
   schedule:
-    - cron: "0 8,20 * * *"
+    - cron: "17 7 * * *"
   workflow_dispatch:
 
 permissions:
@@ -64,7 +64,5 @@ jobs:
         run: test -n "$CLOUDFLARE_API_TOKEN" && test -n "$CLOUDFLARE_ACCOUNT_ID" && test -n "$CF_D1_DATABASE_ID"
       - name: Install Wrangler
         run: npm ci --no-audit --no-fund
-      - name: Sync upstream and export D1 generation
-        run: python scripts/export_catalogue.py --output .data/import
-      - name: Stage SQL and activate only when complete
-        run: node scripts/import_d1.mjs
+      - name: Check upstream hash and sync only when changed
+        run: npm run sync

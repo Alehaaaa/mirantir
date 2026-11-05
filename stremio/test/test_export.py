@@ -12,6 +12,15 @@ exporter=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(exporter)
 
 class ExportTests(unittest.TestCase):
+ def test_generation_hash_tracks_snapshot_and_patch_content(self):
+  base={'repo':'owner/catalogue','sha':'snapshot-a','patches':[]}
+  first=exporter.generation_for(base)
+  self.assertRegex(first,r'^[a-f0-9]{24}$')
+  self.assertEqual(first,exporter.generation_for(dict(base)))
+  self.assertNotEqual(first,exporter.generation_for({**base,'sha':'snapshot-b'}))
+  self.assertNotEqual(first,exporter.generation_for({
+   **base,'patches':[{'name':'moria_1.up1','sha':'patch-a'}]}))
+
  def test_export_stages_then_activates_and_preserves_special_characters(self):
   with tempfile.TemporaryDirectory() as folder:
    src=Path(folder)/'source.sqlite'

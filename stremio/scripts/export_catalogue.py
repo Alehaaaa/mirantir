@@ -7,6 +7,7 @@ from pathlib import Path
 import sqlite3
 import sys
 import tempfile
+import os
 
 LIB = Path(__file__).resolve().parents[2] / 'addons/plugin.video.mirantir/resources/lib'
 sys.path.insert(0, str(LIB))
@@ -18,6 +19,11 @@ COLUMNS = {
  'catalogue_episodes': ('generation','tmdb','season','episode'),
  'catalogue_links': ('generation','kind','tmdb','season','episode','position','quality','audio','info','hoster_url'),
 }
+def generation_for(info):
+ version=[info['repo'],info['sha'],
+  [(p['name'],p['sha']) for p in info.get('patches',[])]]
+ return hashlib.sha256(json.dumps(version,sort_keys=True).encode()).hexdigest()[:24]
+
 def q(value):
  if value is None: return 'NULL'
  if isinstance(value,(int,float)): return str(value)
@@ -102,7 +108,11 @@ def main():
  parser=argparse.ArgumentParser()
  parser.add_argument('--output',type=Path,default=Path('.data/import'))
  parser.add_argument('--db',type=Path,help='Existing SQLite file (for local tests)')
+ parser.add_argument('--check-only',action='store_true',help='Print upstream generation without downloading the database')
+ parser.add_argument('--source-repo',help='Previously verified source repository to check directly')
  args=parser.parse_args()
+ if args.source_repo:
+  os.environ['PALANTIR_DB_REPO']=args.source_repo
  if args.db:
   info={'repo':'local','sha':hashlib.sha256(args.db.read_bytes()).hexdigest()}
   manifest=export_database(args.db,args.output,info['sha'][:24],info)
@@ -110,10 +120,12 @@ def main():
   with tempfile.TemporaryDirectory() as dirname:
    db=Path(dirname)/'moria.cm3';state=Path(dirname)/'state.json'
    info=source.discover(str(state))
-   source.sync(str(db),str(state),info=info)
-   version=[info['repo'],info['sha'],
-    [(p['name'],p['sha']) for p in info.get('patches',[])]]
-   generation=hashlib.sha256(json.dumps(version,sort_keys=True).encode()).hexdigest()[:24]
-   manifest=export_database(db,args.output,generation,info)
+   generation=generation_for(info)
+   if args.check_only:
+    manifest={'generation':generation,'source':info['repo'],'snapshot':info['name'],
+     'patches':[p['name'] for p in info.get('patches',[])]}
+   else:
+    source.sync(str(db),str(state),info=info)
+    manifest=export_database(db,args.output,generation,info)
  print(json.dumps(manifest,indent=2))
 if __name__=='__main__':main()
