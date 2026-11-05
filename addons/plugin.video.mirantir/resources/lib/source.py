@@ -354,7 +354,10 @@ def _decode_up(data):
     padding = (-len(value)) % 4
     quarter = (len(value) + padding) // 4
     encoded = value[:quarter][::-1] + value[quarter:][::-1] + b"=" * padding
-    sql = base64.b64decode(encoded, validate=True).decode("utf-8")
+    try:
+        sql = base64.b64decode(encoded, validate=True).decode("utf-8")
+    except (ValueError, UnicodeError) as exc:
+        raise ValueError("invalid Palantir incremental payload") from exc
     if len(sql.strip()) <= 10:
         raise ValueError("Palantir incremental update has no SQL")
     return sql
@@ -364,15 +367,19 @@ def _db_metadata(db_path):
     """An in-database recovery marker avoids replay after state.json loss."""
     if not os.path.isfile(db_path):
         return {}
+    conn = None
     try:
-        with sqlite3.connect(db_path, timeout=5) as conn:
-            row = conn.execute(
-                "SELECT value FROM _mirantir_catalogue_state WHERE key='sync'"
-            ).fetchone()
-            value = json.loads(row[0]) if row else {}
-            return value if isinstance(value, dict) else {}
+        conn = sqlite3.connect(db_path, timeout=5)
+        row = conn.execute(
+            "SELECT value FROM _mirantir_catalogue_state WHERE key='sync'"
+        ).fetchone()
+        value = json.loads(row[0]) if row else {}
+        return value if isinstance(value, dict) else {}
     except (sqlite3.Error, ValueError, TypeError):
         return {}
+    finally:
+        if conn:
+            conn.close()
 
 
 def _effective_state(db_path, state):
@@ -409,7 +416,8 @@ def _plan(db_path, state, info, force=False):
 
 
 def _write_db_metadata_and_validate(db_path, metadata):
-    with sqlite3.connect(db_path, timeout=30) as conn:
+    conn = sqlite3.connect(db_path, timeout=30)
+    try:
         # All SQL changes, including markers, must live in the staged DB.
         conn.execute("PRAGMA journal_mode=DELETE")
         conn.execute(
@@ -423,6 +431,8 @@ def _write_db_metadata_and_validate(db_path, metadata):
         ok = conn.execute("PRAGMA quick_check").fetchone()
         if not ok or ok[0] != "ok":
             raise RuntimeError("catalogue failed SQLite integrity check")
+    finally:
+        conn.close()
 
 
 
@@ -479,7 +489,8 @@ def sync(db_path, state_path, force=False, progress=None, log=lambda *a: None,
         else:
             # sqlite readers can safely continue using the original DB.
             shutil.copy2(db_path, working)
-        with sqlite3.connect(working, timeout=30) as conn:
+        conn = sqlite3.connect(working, timeout=30)
+        try:
             conn.execute("PRAGMA journal_mode=DELETE")
             for patch in pending:
                 log("applying", patch["name"], "from", info["repo"])
@@ -495,6 +506,8 @@ def sync(db_path, state_path, force=False, progress=None, log=lambda *a: None,
                     conn.executescript(sql)
                 finally:
                     conn.set_authorizer(None)
+        finally:
+            conn.close()
 
         _index(working)
         metadata = {
