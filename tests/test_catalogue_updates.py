@@ -7,7 +7,7 @@ import io
 import json
 import os
 from pathlib import Path
-import shutil
+from contextlib import closing
 import sqlite3
 import sys
 import tempfile
@@ -29,7 +29,7 @@ def p3encode(sql):
 
 
 def make_db(path):
-    with sqlite3.connect(path) as conn:
+    with closing(sqlite3.connect(path)) as conn:
         conn.executescript("""
             CREATE TABLE pelis (tmdb INTEGER PRIMARY KEY, categoria TEXT, updated TEXT);
             CREATE TABLE series (tmdb INTEGER PRIMARY KEY, categoria TEXT);
@@ -55,7 +55,7 @@ def patch(number, sha, date="2026-11-02T10:00:00"):
 
 
 def rows(path):
-    with sqlite3.connect(path) as conn:
+    with closing(sqlite3.connect(path)) as conn:
         return conn.execute("SELECT tmdb FROM pelis ORDER BY tmdb").fetchall()
 
 
@@ -110,8 +110,8 @@ class CatalogueUpdateTests(unittest.TestCase):
             zm3 = Path(tmp, "file.zm3")
             zm3.write_bytes(source.ZIP_HEADER + compressed[42:])
             dest = str(Path(tmp, "restored.sqlite"))
-            self.assertEqual(source.rebuild_from_file(str(zm3), dest), len(content) +
-                             (os.stat(dest).st_size - len(content)))
+            self.assertEqual(source.rebuild_from_file(str(zm3), dest),
+                             os.stat(dest).st_size)
             self.assertEqual(rows(dest), [(1,)])
 
     def test_snapshot_then_incremental_only_check_then_in_order(self):
