@@ -33,6 +33,7 @@ test('manifest satisfies Stremio protocol',async()=>{
  assert.equal(data.id,MANIFEST.id);
  assert.deepEqual(data.types,['movie','series']);
  assert.equal(data.catalogs.length,2);
+ assert.deepEqual(data.resources.find(x=>x.name==='stream').idPrefixes,['mirantir:','tt']);
 });
 test('config credentials are encrypted and never printed',async()=>{
  const form=new URLSearchParams({provider:'rd',apiKey:'secret-real-debrid-key'});
@@ -51,6 +52,20 @@ test('config credentials are encrypted and never printed',async()=>{
  const configured=await worker.fetch(request('/c/'+token+'/manifest.json'),{DB:db(),CONFIG_KEY:secret});
  assert.equal(configured.status,200);
  assert.equal(configured.headers.get('Cache-Control'),'no-store');
+ const settings=await worker.fetch(request('/c/'+token+'/configure'),{DB:db(),CONFIG_KEY:secret});
+ assert.equal(settings.status,200);
+ const settingsHtml=await settings.text();
+ assert(!settingsHtml.includes('secret-real-debrid-key'));
+ assert.match(settingsHtml,/value="rd" selected/);
+ assert.match(settingsHtml,/Current key retained if left blank/);
+ const saved=await worker.fetch(request('/c/'+token+'/configure',{
+  method:'POST',body:new URLSearchParams({provider:'rd',apiKey:'',hide4k:'on'})
+ }),{DB:db(),CONFIG_KEY:secret});
+ assert.equal(saved.status,200);
+ const savedToken=(await saved.text()).match(/\/c\/([\w-]+)\/manifest\.json/)[1];
+ assert.deepEqual(await unseal(savedToken,secret),{
+  v:1,provider:'rd',apiKey:'secret-real-debrid-key',hide4k:true,hideDv:false
+ });
  assert.equal((await worker.fetch(request('/c/invalid/manifest.json'),{DB:db(),CONFIG_KEY:secret})).status,401);
 });
 test('configuration page links to the selected provider API pages',async()=>{
@@ -94,5 +109,24 @@ test('configured debrid calls provider without exposing token in provider URL',a
   const streams=await response.json();
   assert.equal(streams.streams[0].url,'https://cdn.example.com/video.mkv');
   assert.equal(headers.Authorization,'Bearer rd-test-token');
+ }finally{globalThis.fetch=old;}
+});
+test('IMDb stream IDs resolve through Cinemeta to local TMDB links',async()=>{
+ const token=await seal({provider:'rd',apiKey:'rd-test-token'},secret);
+ const database=db();
+ const old=globalThis.fetch;const calls=[];
+ globalThis.fetch=async(url,opts)=>{
+  calls.push(String(url));
+  if(String(url).startsWith('https://v3-cinemeta.strem.io/'))
+   return Response.json({meta:{moviedb_id:1078605}});
+  return Response.json({download:'https://cdn.example.com/weapons.mkv'});
+ };
+ try{
+  const response=await worker.fetch(request('/c/'+token+'/stream/movie/tt26581740.json'),
+   {DB:database,CONFIG_KEY:secret});
+  assert.equal((await response.json()).streams[0].url,'https://cdn.example.com/weapons.mkv');
+  assert.equal(calls[0],'https://v3-cinemeta.strem.io/meta/movie/tt26581740.json');
+  const query=database.queries.find(x=>x.sql.includes('catalogue_links'));
+  assert.equal(query.args[2],1078605);
  }finally{globalThis.fetch=old;}
 });

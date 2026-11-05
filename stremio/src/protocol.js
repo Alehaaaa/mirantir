@@ -7,7 +7,7 @@ export const MANIFEST = {
   {type:'series',id:'mirantir-series',name:'Mirantir • Series',extra:[{name:'search',isRequired:false},{name:'skip',isRequired:false}]}
  ],
  resources:['catalog',{name:'meta',types:['movie','series'],idPrefixes:['mirantir:']},
-  {name:'stream',types:['movie','series'],idPrefixes:['mirantir:']}],
+  {name:'stream',types:['movie','series'],idPrefixes:['mirantir:','tt']}],
  behaviorHints:{configurable:true,configurationRequired:false}
 };
 export const mediaId = (kind,id) => 'mirantir:'+kind+':'+id;

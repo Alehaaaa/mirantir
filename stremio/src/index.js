@@ -29,25 +29,29 @@ function page(content){
 }
 const escapeHtml=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const makeNonce=()=>crypto.randomUUID().replaceAll('-','');
-function configurePage(nonce){
+function configurePage(nonce,profile=null,action='/configure'){
+ const provider=profile?.provider||'none';
+ const selected=value=>provider===value?' selected':'';
+ const checked=value=>value?' checked':'';
  return page('<h1>Configure your addon</h1><p class="lead">Discover the Mirantir movie and series catalogue, then stream with your own debrid account.</p>'+
- '<form method="post" action="/configure"><div class="field"><label><span>Debrid provider</span><select id="provider" name="provider">'+
- '<option value="none">Catalogue only</option><option value="rd">Real-Debrid</option><option value="ad">AllDebrid</option></select></label></div>'+
+ '<form method="post" action="'+escapeHtml(action)+'"><div class="field"><label><span>Debrid provider</span><select id="provider" name="provider">'+
+ '<option value="none"'+selected('none')+'>Catalogue only</option><option value="rd"'+selected('rd')+'>Real-Debrid</option><option value="ad"'+selected('ad')+'>AllDebrid</option></select></label></div>'+
  '<div id="apiHelp" class="api-help" hidden><span id="apiHint">Get the API key from your provider.</span><a id="apiLink" href="#" target="_blank" rel="noreferrer">Open API page ↗</a></div>'+
- '<div class="field"><label><span>Personal API key</span><input name="apiKey" type="password" maxlength="512" autocomplete="off" placeholder="Paste your private API key"></label></div>'+
+ '<div class="field"><label><span>Personal API key</span><input name="apiKey" type="password" maxlength="512" autocomplete="off" placeholder="'+(profile?'Current key retained if left blank':'Paste your private API key')+'"></label></div>'+
  '<div class="section"><span class="label">Stream filters</span><div class="checks">'+
- '<label class="check"><input type="checkbox" name="hide4k"><span>Hide 4K</span></label>'+
- '<label class="check"><input type="checkbox" name="hideDv"><span>Hide Dolby Vision</span></label></div></div>'+
+ '<label class="check"><input type="checkbox" name="hide4k"'+checked(profile?.hide4k)+'><span>Hide 4K</span></label>'+
+ '<label class="check"><input type="checkbox" name="hideDv"'+checked(profile?.hideDv)+'><span>Hide Dolby Vision</span></label></div></div>'+
  '<button class="primary" type="submit">Generate installation link <span aria-hidden="true">→</span></button></form>'+
- '<p class="notice">Your API key is encrypted into the installation URL. Treat that URL like a password and never share it.</p>'+
+ '<p class="notice">'+(profile?'Your current API key remains encrypted and is never displayed. Leave the field blank to keep it.':'Your API key is encrypted into the installation URL. Treat that URL like a password and never share it.')+'</p>'+
  '<script nonce="'+nonce+'">const p=document.querySelector("#provider"),h=document.querySelector("#apiHelp"),t=document.querySelector("#apiHint"),a=document.querySelector("#apiLink");const providers={rd:{name:"Real-Debrid",url:"https://real-debrid.com/apitoken"},ad:{name:"AllDebrid",url:"https://alldebrid.com/apikeys/"}};function update(){const v=providers[p.value];h.hidden=!v;if(v){t.textContent="Open "+v.name+" to copy your API key.";a.href=v.url}}p.addEventListener("change",update);update()</script>');
 }
-async function configure(request,env){
+async function configure(request,env,currentProfile=null){
  if(Number(request.headers.get('content-length')||0)>4096)
   return json({error:'Configuration too large'},413,true);
  const form=new URLSearchParams((await request.text()).slice(0,4096));
  const provider=form.get('provider')||'none';
- const apiKey=(form.get('apiKey')||'').trim();
+ const enteredKey=(form.get('apiKey')||'').trim();
+ const apiKey=enteredKey||(currentProfile?.provider===provider?currentProfile.apiKey:'');
  if(!['none','rd','ad'].includes(provider)||apiKey.length>512||(provider!=='none'&&!apiKey))
   return html(page('<p>Invalid provider or missing API key.</p><a href="/configure">Back</a>'),400);
  let url=new URL(request.url).origin+'/manifest.json';
@@ -81,7 +85,8 @@ export default {
     }
     if(request.method==='POST')return configure(request,env);
    }
-   if(request.method!=='GET')return json({error:'Method not allowed'},405);
+   const configuredPost=request.method==='POST'&&parts[0]==='c'&&parts.length===3&&parts[2]==='configure';
+   if(request.method!=='GET'&&!configuredPost)return json({error:'Method not allowed'},405);
    if(parts.length===1&&parts[0]==='health'){
     if(!env.DB)return json({ok:true,catalogueReady:false,version:MANIFEST.version},200,true);
     const ready=!!(await env.DB.prepare("SELECT value FROM catalogue_state WHERE key='active_generation'").first())?.value;
@@ -92,7 +97,15 @@ export default {
     configured=true;
     profile=await unseal(parts[1],env.CONFIG_KEY);
     if(!profile)return json({error:'Invalid configuration'},401,true);
+    const configToken=parts[1];
     parts.splice(0,2);
+    if(parts.length===1&&parts[0]==='configure'){
+     if(request.method==='GET'){
+      const nonce=makeNonce();
+      return html(configurePage(nonce,profile,'/c/'+configToken+'/configure'),200,nonce);
+     }
+     if(request.method==='POST')return configure(request,env,profile);
+    }
    }
    if(parts.length===1&&parts[0]==='manifest.json')return json(MANIFEST,200,configured);
    if(!env.DB)return json({error:'D1 catalogue binding unavailable'},503,configured);
