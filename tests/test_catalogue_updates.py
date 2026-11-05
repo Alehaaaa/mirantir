@@ -83,8 +83,8 @@ class CatalogueUpdateTests(unittest.TestCase):
             {"name": "moria_3_3_10.zm3", "sha": "old", "download_url": "https://old"},
         ]
         commits = [{"commit": {"committer": {"date": "2026-11-04T12:00:00Z"}}}]
-        with mock.patch.object(source, "_json", side_effect=[commits, contents]), \
-                mock.patch.object(source, "_file_commit_date",
+        with mock.patch.object(discovery, "_json", side_effect=[commits, contents]), \
+                mock.patch.object(discovery, "_file_commit_date",
                                   side_effect=["2026-11-01T08:00:00",
                                                "2026-11-02T09:00:00",
                                                "2026-11-03T09:00:00"]) as dates:
@@ -94,7 +94,7 @@ class CatalogueUpdateTests(unittest.TestCase):
         self.assertEqual([p["name"] for p in data["patches"]],
                          ["moria_3_3_11.up1", "moria_3_3_11.up2"])
         self.assertEqual(dates.call_count, 3)
-        with mock.patch.object(source, "_json", side_effect=[commits, contents]):
+        with mock.patch.object(discovery, "_json", side_effect=[commits, contents]):
             self.assertIsNone(discovery._newest("Owner/DB", preferred_version="3.3.12"))
 
     def test_reconstructs_stripped_header_zm3_snapshot(self):
@@ -127,10 +127,10 @@ class CatalogueUpdateTests(unittest.TestCase):
             def fake_rebuild(_archive, path, build_indexes=True):
                 make_db(path)
                 return os.path.getsize(path)
-            with mock.patch.object(source, "_download_zm3"), \
-                    mock.patch.object(source, "rebuild_from_file",
+            with mock.patch.object(catalogue, "_download_zm3"), \
+                    mock.patch.object(catalogue, "rebuild_from_file",
                                       side_effect=fake_rebuild), \
-                    mock.patch.object(source, "_bytes",
+                    mock.patch.object(catalogue, "_bytes",
                                       side_effect=[added, added2]) as fetch:
                 changed, _ = source.sync(db, state, info=full)
                 self.assertTrue(changed)
@@ -163,10 +163,10 @@ class CatalogueUpdateTests(unittest.TestCase):
             def fake_rebuild(_archive, path, build_indexes=False):
                 make_db(path)
                 return os.path.getsize(path)
-            with mock.patch.object(source, "_download_zm3") as download, \
-                    mock.patch.object(source, "rebuild_from_file",
+            with mock.patch.object(catalogue, "_download_zm3") as download, \
+                    mock.patch.object(catalogue, "rebuild_from_file",
                                       side_effect=fake_rebuild), \
-                    mock.patch.object(source, "_bytes", side_effect=[
+                    mock.patch.object(catalogue, "_bytes", side_effect=[
                         p3encode("INSERT INTO pelis VALUES (2,'Película','old');"),
                         p3encode("INSERT INTO pelis VALUES (3,'Película','new');")
                     ]):
@@ -182,7 +182,7 @@ class CatalogueUpdateTests(unittest.TestCase):
             Path(state).write_text(json.dumps({"sha": "full-1",
                                                "repo": "Example/Catalogue"}))
             info = remote_info([patch(1, "patch-one")])
-            with mock.patch.object(source, "_bytes", return_value=p3encode(
+            with mock.patch.object(catalogue, "_bytes", return_value=p3encode(
                     "INSERT INTO pelis VALUES (1, 'bad duplicate', 'broken');")):
                 with self.assertRaises(sqlite3.IntegrityError):
                     source.sync(db, state, info=info)
@@ -197,10 +197,10 @@ class CatalogueUpdateTests(unittest.TestCase):
             def fake_rebuild(_archive, path, build_indexes=False):
                 make_db(path)
                 return os.path.getsize(path)
-            with mock.patch.object(source, "_download_zm3"), \
-                    mock.patch.object(source, "rebuild_from_file",
+            with mock.patch.object(catalogue, "_download_zm3"), \
+                    mock.patch.object(catalogue, "rebuild_from_file",
                                       side_effect=fake_rebuild), \
-                    mock.patch.object(source, "_bytes", return_value=p3encode(
+                    mock.patch.object(catalogue, "_bytes", return_value=p3encode(
                         "INSERT INTO pelis VALUES (2,'Película','2026-11-02');")) as fetch:
                 source.sync(db, state, info=info)
                 os.remove(state)
@@ -237,7 +237,7 @@ class CatalogueUpdateTests(unittest.TestCase):
             if len(calls) < 4:
                 raise IOError("temporary")
             return True
-        with mock.patch.object(source.time, "sleep") as sleeper:
+        with mock.patch.object(catalogue.time, "sleep") as sleeper:
             self.assertTrue(catalogue._retry(attempt))
         self.assertEqual(len(calls), 4)
         self.assertEqual([v.args[0] for v in sleeper.call_args_list], [2, 4, 8])
