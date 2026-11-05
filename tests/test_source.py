@@ -21,7 +21,7 @@ def encoded_md(code):
     return data[t:2*t] + data[2*t:][::-1] + data[:t]
 
 
-def info(repo):
+def info(repo, **kwargs):
     return {"repo": repo, "name": "moria_3_3_12.zm3",
             "sha": "new-sha", "url": "https://example.com/catalogue.zm3",
             "commit": "2026-11-05T10:00:00Z"}
