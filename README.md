@@ -14,6 +14,25 @@ The Pages root can be added directly as a Kodi file source. Its generated HTTP d
 
 Kodi will subsequently discover new versions through `addons.xml` and update the add-on according to the user's update settings.
 
+## Catalogue architecture
+
+The Kodi router and background service use only four functions from
+`resources/lib/source.py`: `discover`, `load_state`, `update_required`,
+and `sync`. Implementation is deliberately separated:
+
+- `palantir_source.py` discovers the current database repository from the
+  public Palantir release ZIP, the original local `source.txt` override, or a
+  last-known-good source. **No database repository is hardcoded.**
+- `catalogue_sync.py` downloads the full `.zm3` SQLite snapshot, detects
+  newer `.upN` SQL changes, and publishes a validated staged database
+  atomically. Unsupported `.p4u` packages are not interpreted as SQL.
+- `db.py` handles read-only, locally indexed catalogue lookups. Navigation
+  never performs a network check when the local database already exists.
+
+Checks occur twice daily in the background (when automatic updates are enabled).
+`state.json` and an in-database marker prevent incremental patch replays.
+Unit tests and a live Palantir restore + query smoke test run on pull requests.
+
 ## Publish an update
 
 1. Work directly in `addons/plugin.video.mirantir/`.

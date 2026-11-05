@@ -18,6 +18,8 @@ import zipfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "addons"
                        / "plugin.video.mirantir" / "resources" / "lib"))
 import source
+import palantir_source as discovery
+import catalogue_sync as catalogue
 
 
 def p3encode(sql):
@@ -32,9 +34,9 @@ def make_db(path):
     with closing(sqlite3.connect(path)) as conn:
         conn.executescript("""
             CREATE TABLE pelis (tmdb INTEGER PRIMARY KEY, categoria TEXT, updated TEXT);
-            CREATE TABLE series (tmdb INTEGER PRIMARY KEY, categoria TEXT);
+            CREATE TABLE series (tmdb INTEGER PRIMARY KEY, categoria TEXT, updated TEXT);
             CREATE TABLE enlaces_pelis (tmdb INTEGER);
-            CREATE TABLE enlaces_series (tmdb INTEGER, temporada INTEGER, episodio INTEGER);
+            CREATE TABLE enlaces_series (tmdb INTEGER, temporada INTEGER, episodio INTEGER, updated TEXT);
             INSERT INTO pelis VALUES (1, 'Película', '2026-11-01');
         """)
 
@@ -66,9 +68,9 @@ class CatalogueUpdateTests(unittest.TestCase):
             "UPDATE pelis SET categoria='Español' WHERE tmdb=1;",
             "CREATE INDEX IF NOT EXISTS ix_foo ON pelis(tmdb);",
         ):
-            self.assertEqual(source._decode_up(p3encode(sql)), sql)
+            self.assertEqual(catalogue._decode_up(p3encode(sql)), sql)
         with self.assertRaises(ValueError):
-            source._decode_up(b"broken")
+            catalogue._decode_up(b"broken")
 
     def test_newest_filters_p4u_and_tracks_incremental_commits(self):
         contents = [
@@ -81,19 +83,19 @@ class CatalogueUpdateTests(unittest.TestCase):
             {"name": "moria_3_3_10.zm3", "sha": "old", "download_url": "https://old"},
         ]
         commits = [{"commit": {"committer": {"date": "2026-11-04T12:00:00Z"}}}]
-        with mock.patch.object(source, "_json", side_effect=[commits, contents]), \
-                mock.patch.object(source, "_file_commit_date",
+        with mock.patch.object(discovery, "_json", side_effect=[commits, contents]), \
+                mock.patch.object(discovery, "_file_commit_date",
                                   side_effect=["2026-11-01T08:00:00",
                                                "2026-11-02T09:00:00",
                                                "2026-11-03T09:00:00"]) as dates:
-            data = source._newest("Owner/DB", preferred_version="3.3.11")
+            data = discovery._newest("Owner/DB", preferred_version="3.3.11")
         self.assertEqual(data["version"], "3.3.11")
         self.assertEqual(data["sha"], "snap")
         self.assertEqual([p["name"] for p in data["patches"]],
                          ["moria_3_3_11.up1", "moria_3_3_11.up2"])
         self.assertEqual(dates.call_count, 3)
-        with mock.patch.object(source, "_json", side_effect=[commits, contents]):
-            self.assertIsNone(source._newest("Owner/DB", preferred_version="3.3.12"))
+        with mock.patch.object(discovery, "_json", side_effect=[commits, contents]):
+            self.assertIsNone(discovery._newest("Owner/DB", preferred_version="3.3.12"))
 
     def test_reconstructs_stripped_header_zm3_snapshot(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -106,11 +108,11 @@ class CatalogueUpdateTests(unittest.TestCase):
             compressed = archive.getvalue()
             # Palantir strips exactly the 42-byte local ZIP entry header.
             self.assertEqual(compressed[:4], b"PK\x03\x04")
-            self.assertEqual(len(source.ZIP_HEADER), 42)
+            self.assertEqual(len(catalogue.ZIP_HEADER), 42)
             zm3 = Path(tmp, "file.zm3")
-            zm3.write_bytes(source.ZIP_HEADER + compressed[42:])
+            zm3.write_bytes(catalogue.ZIP_HEADER + compressed[42:])
             dest = str(Path(tmp, "restored.sqlite"))
-            self.assertEqual(source.rebuild_from_file(str(zm3), dest),
+            self.assertEqual(catalogue.rebuild_from_file(str(zm3), dest),
                              os.stat(dest).st_size)
             self.assertEqual(rows(dest), [(1,)])
 
@@ -125,10 +127,10 @@ class CatalogueUpdateTests(unittest.TestCase):
             def fake_rebuild(_archive, path, build_indexes=True):
                 make_db(path)
                 return os.path.getsize(path)
-            with mock.patch.object(source, "_download_zm3"), \
-                    mock.patch.object(source, "rebuild_from_file",
+            with mock.patch.object(catalogue, "_download_zm3"), \
+                    mock.patch.object(catalogue, "rebuild_from_file",
                                       side_effect=fake_rebuild), \
-                    mock.patch.object(source, "_bytes",
+                    mock.patch.object(catalogue, "_bytes",
                                       side_effect=[added, added2]) as fetch:
                 changed, _ = source.sync(db, state, info=full)
                 self.assertTrue(changed)
@@ -161,10 +163,10 @@ class CatalogueUpdateTests(unittest.TestCase):
             def fake_rebuild(_archive, path, build_indexes=False):
                 make_db(path)
                 return os.path.getsize(path)
-            with mock.patch.object(source, "_download_zm3") as download, \
-                    mock.patch.object(source, "rebuild_from_file",
+            with mock.patch.object(catalogue, "_download_zm3") as download, \
+                    mock.patch.object(catalogue, "rebuild_from_file",
                                       side_effect=fake_rebuild), \
-                    mock.patch.object(source, "_bytes", side_effect=[
+                    mock.patch.object(catalogue, "_bytes", side_effect=[
                         p3encode("INSERT INTO pelis VALUES (2,'Película','old');"),
                         p3encode("INSERT INTO pelis VALUES (3,'Película','new');")
                     ]):
@@ -180,7 +182,7 @@ class CatalogueUpdateTests(unittest.TestCase):
             Path(state).write_text(json.dumps({"sha": "full-1",
                                                "repo": "Example/Catalogue"}))
             info = remote_info([patch(1, "patch-one")])
-            with mock.patch.object(source, "_bytes", return_value=p3encode(
+            with mock.patch.object(catalogue, "_bytes", return_value=p3encode(
                     "INSERT INTO pelis VALUES (1, 'bad duplicate', 'broken');")):
                 with self.assertRaises(sqlite3.IntegrityError):
                     source.sync(db, state, info=info)
@@ -195,10 +197,10 @@ class CatalogueUpdateTests(unittest.TestCase):
             def fake_rebuild(_archive, path, build_indexes=False):
                 make_db(path)
                 return os.path.getsize(path)
-            with mock.patch.object(source, "_download_zm3"), \
-                    mock.patch.object(source, "rebuild_from_file",
+            with mock.patch.object(catalogue, "_download_zm3"), \
+                    mock.patch.object(catalogue, "rebuild_from_file",
                                       side_effect=fake_rebuild), \
-                    mock.patch.object(source, "_bytes", return_value=p3encode(
+                    mock.patch.object(catalogue, "_bytes", return_value=p3encode(
                         "INSERT INTO pelis VALUES (2,'Película','2026-11-02');")) as fetch:
                 source.sync(db, state, info=info)
                 os.remove(state)
@@ -208,6 +210,26 @@ class CatalogueUpdateTests(unittest.TestCase):
                 self.assertEqual(fetch.call_count, 1)
             self.assertEqual(rows(db), [(1,), (2,)])
 
+    def test_legacy_plain_sql_preserves_question_marks(self):
+        # Historical .upN files could be UTF-8 SQL instead of p3b64.
+        plain = "INSERT INTO pelis VALUES (2,'¿Qué?', '2025-06-04');"
+        self.assertEqual(catalogue._decode_up(plain.encode("utf-8")), plain)
+
+    def test_catalogue_indexes_support_listing_and_latest_episodes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = str(Path(tmp, "catalogue.sqlite"))
+            make_db(path)
+            catalogue._index(path)
+            with closing(sqlite3.connect(path)) as conn:
+                for table, expected in (
+                    ("pelis", "ix_pelis_cat_upd"),
+                    ("series", "ix_series_cat_upd"),
+                    ("enlaces_series", "ix_es_tmdb_upd"),
+                ):
+                    names = {row[1] for row in conn.execute(
+                        "PRAGMA index_list('%s')" % table)}
+                    self.assertIn(expected, names)
+
     def test_retry_mirrors_palantir_four_download_attempts(self):
         calls = []
         def attempt():
@@ -215,8 +237,8 @@ class CatalogueUpdateTests(unittest.TestCase):
             if len(calls) < 4:
                 raise IOError("temporary")
             return True
-        with mock.patch.object(source.time, "sleep") as sleeper:
-            self.assertTrue(source._retry(attempt))
+        with mock.patch.object(catalogue.time, "sleep") as sleeper:
+            self.assertTrue(catalogue._retry(attempt))
         self.assertEqual(len(calls), 4)
         self.assertEqual([v.args[0] for v in sleeper.call_args_list], [2, 4, 8])
 
@@ -226,7 +248,7 @@ class CatalogueUpdateTests(unittest.TestCase):
             make_db(db)
             state = {"sha": "full-1", "repo": "Example/Catalogue"}
             info = remote_info([patch(1, "stale", "2026-10-31T23:00:00")])
-            rebuild, pending, desired = source._plan(db, state, info)
+            rebuild, pending, desired = catalogue._plan(db, state, info)
             self.assertFalse(rebuild)
             self.assertEqual(pending, [])
             self.assertEqual(desired, [])
