@@ -34,9 +34,9 @@ def make_db(path):
     with closing(sqlite3.connect(path)) as conn:
         conn.executescript("""
             CREATE TABLE pelis (tmdb INTEGER PRIMARY KEY, categoria TEXT, updated TEXT);
-            CREATE TABLE series (tmdb INTEGER PRIMARY KEY, categoria TEXT);
+            CREATE TABLE series (tmdb INTEGER PRIMARY KEY, categoria TEXT, updated TEXT);
             CREATE TABLE enlaces_pelis (tmdb INTEGER);
-            CREATE TABLE enlaces_series (tmdb INTEGER, temporada INTEGER, episodio INTEGER);
+            CREATE TABLE enlaces_series (tmdb INTEGER, temporada INTEGER, episodio INTEGER, updated TEXT);
             INSERT INTO pelis VALUES (1, 'Película', '2026-11-01');
         """)
 
@@ -209,6 +209,26 @@ class CatalogueUpdateTests(unittest.TestCase):
                 self.assertFalse(changed)
                 self.assertEqual(fetch.call_count, 1)
             self.assertEqual(rows(db), [(1,), (2,)])
+
+    def test_legacy_plain_sql_preserves_question_marks(self):
+        # Historical .upN files could be UTF-8 SQL instead of p3b64.
+        plain = "INSERT INTO pelis VALUES (2,'¿Qué?', '2025-06-04');"
+        self.assertEqual(catalogue._decode_up(plain.encode("utf-8")), plain)
+
+    def test_catalogue_indexes_support_listing_and_latest_episodes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = str(Path(tmp, "catalogue.sqlite"))
+            make_db(path)
+            catalogue._index(path)
+            with sqlite3.connect(path) as conn:
+                for table, expected in (
+                    ("pelis", "ix_pelis_cat_upd"),
+                    ("series", "ix_series_cat_upd"),
+                    ("enlaces_series", "ix_es_tmdb_upd"),
+                ):
+                    names = {row[1] for row in conn.execute(
+                        "PRAGMA index_list('%s')" % table)}
+                    self.assertIn(expected, names)
 
     def test_retry_mirrors_palantir_four_download_attempts(self):
         calls = []
