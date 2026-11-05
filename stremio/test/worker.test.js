@@ -130,3 +130,20 @@ test('IMDb stream IDs resolve through Cinemeta to local TMDB links',async()=>{
   assert.equal(query.args[2],1078605);
  }finally{globalThis.fetch=old;}
 });
+test('AllDebrid unlock uses current POST and bearer authentication',async()=>{
+ const token=await seal({provider:'ad',apiKey:'ad-test-token'},secret);
+ const old=globalThis.fetch;let requestOptions;
+ globalThis.fetch=async(url,opts)=>{
+  assert.equal(url,'https://api.alldebrid.com/v4/link/unlock');
+  requestOptions=opts;
+  return Response.json({status:'success',data:{link:'https://cdn.example.com/ad-video.mkv'}});
+ };
+ try{
+  const response=await worker.fetch(request('/c/'+token+'/stream/movie/mirantir:movie:123.json'),
+   {DB:db(),CONFIG_KEY:secret});
+  assert.equal((await response.json()).streams[0].url,'https://cdn.example.com/ad-video.mkv');
+  assert.equal(requestOptions.method,'POST');
+  assert.equal(requestOptions.headers.Authorization,'Bearer ad-test-token');
+  assert.equal(requestOptions.body.get('link'),'https://example.com/file');
+ }finally{globalThis.fetch=old;}
+});

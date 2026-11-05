@@ -12,9 +12,10 @@ async function unlock(link,config){
    method:'POST',headers:{Authorization:'Bearer '+config.apiKey,'Content-Type':'application/x-www-form-urlencoded'},
    body:new URLSearchParams({link}),signal:AbortSignal.timeout(12000)});
  }else{
-  const url=new URL('https://api.alldebrid.com/v4/link/unlock');
-  url.search=new URLSearchParams({agent:'mirantir-stremio',apikey:config.apiKey,link}).toString();
-  response=await fetch(url,{signal:AbortSignal.timeout(12000)});
+  response=await fetch('https://api.alldebrid.com/v4/link/unlock',{
+   method:'POST',headers:{Authorization:'Bearer '+config.apiKey,
+    'Content-Type':'application/x-www-form-urlencoded'},
+   body:new URLSearchParams({link}),signal:AbortSignal.timeout(12000)});
  }
  if(!response.ok)return null;
  const data=await response.json();
