@@ -13,6 +13,8 @@ import zipfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "addons"
                        / "plugin.video.mirantir" / "resources" / "lib"))
 import source
+import palantir_source as discovery
+import catalogue_sync as catalogue
 
 
 def encoded_md(code):
@@ -30,7 +32,7 @@ def info(repo, **kwargs):
 class SourceDiscoveryTests(unittest.TestCase):
     def test_decodes_original_database_module_without_executing_it(self):
         code = "DB_API = 'https://api.github.com/repos/OtherOwner/NewCatalogue'"
-        self.assertEqual(source._repo_from_md(encoded_md(code)),
+        self.assertEqual(discovery._repo_from_md(encoded_md(code)),
                          "OtherOwner/NewCatalogue")
 
     def test_source_txt_takes_priority_and_accepts_original_api_url(self):
@@ -91,7 +93,7 @@ class SourceDiscoveryTests(unittest.TestCase):
         xml = b'<addons><addon version="3.3.12" id="plugin.video.palantir3" /></addons>'
         with mock.patch.dict(os.environ, {"PALANTIR_ADDON_INDEX_URL": index}), \
                 mock.patch.object(source, "_bytes", return_value=xml) as read:
-            value = source._derive_repo(state)
+            value = discovery._derive_repo(state)
         self.assertEqual(value, ("Current/Repo", "3.3.12", index))
         read.assert_called_once_with(index)
 
@@ -104,7 +106,7 @@ class SourceDiscoveryTests(unittest.TestCase):
                              encoded_md('x="https://api.github.com/repos/Live/Repo"'))
         with mock.patch.dict(os.environ, {"PALANTIR_ADDON_INDEX_URL": index}), \
                 mock.patch.object(source, "_bytes", side_effect=[xml, buf.getvalue()]) as read:
-            result = source._derive_repo({"palantir_version": "3.3.11"})
+            result = discovery._derive_repo({"palantir_version": "3.3.11"})
         self.assertEqual(result, ("Live/Repo", "3.3.12", index))
         self.assertEqual(read.call_args_list[-1].args[0],
                          "https://index.example/Repo/plugin.video.palantir3/"
@@ -136,13 +138,13 @@ class SourceDiscoveryTests(unittest.TestCase):
                 Path(path).write_text(json.dumps(state))
                 return info("Live/Repo")
 
-            with mock.patch.object(source, "discover", side_effect=discovered):
+            with mock.patch.object(catalogue, "discover", side_effect=discovered):
                 changed, _ = source.sync(str(db), str(state_file))
             self.assertFalse(changed)
             self.assertEqual(json.loads(state_file.read_text())["source_repo"], "Live/Repo")
 
     def test_no_database_repo_hardcoded(self):
-        file_text = Path(source.__file__).read_text()
+        file_text = Path(discovery.__file__).read_text()
         self.assertNotIn("Maniac2017/Mipal2025", file_text)
         self.assertNotIn("DEFAULT_DB_REPO", file_text)
 
