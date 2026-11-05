@@ -55,7 +55,7 @@ class SourceDiscoveryTests(unittest.TestCase):
                     mock.patch.object(source, "_newest", side_effect=info) as newest:
                 found = source.discover(state_file)
             self.assertEqual(found["repo"], "New/Repo")
-            newest.assert_called_once_with("New/Repo")
+            newest.assert_called_once_with("New/Repo", preferred_version="3.3.12")
             persisted = json.loads(Path(state_file).read_text())
             self.assertEqual(persisted["source_repo"], "New/Repo")
             self.assertEqual(persisted["palantir_version"], "3.3.12")
@@ -117,7 +117,7 @@ class SourceDiscoveryTests(unittest.TestCase):
             with mock.patch.dict(os.environ, {"PALANTIR_ADDON_DIR": tmp}), \
                     mock.patch.object(source, "_derive_repo", return_value=(
                         "Expired/Repo", "3.3.12", "https://example.com/addons.xml")), \
-                    mock.patch.object(source, "_newest", side_effect=lambda repo:
+                    mock.patch.object(source, "_newest", side_effect=lambda repo, **kwargs:
                                       None if repo == "Expired/Repo" else info(repo)):
                 found = source.discover(state_file)
             self.assertEqual(found["repo"], "Cached/Repo")
