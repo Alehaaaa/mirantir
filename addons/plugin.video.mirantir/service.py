@@ -59,7 +59,7 @@ def update_catalogue(show_progress=False):
     if ADDON.getSetting("auto_update") != "true":
         return
     os.makedirs(PROFILE, exist_ok=True)
-    info = source.discover()
+    info = source.discover(STATE_PATH)
     if not source.update_required(DB_PATH, STATE_PATH, info):
         mark_checked()
         return
