@@ -16,6 +16,10 @@ jobs:
           python-version: "3.x"
       - name: Unit-test catalogue source discovery
         run: python -m unittest discover -s tests -v
+      - name: Live Palantir catalogue and lookup smoke test
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python tests/smoke_live_catalogue.py
       - name: Rebuild repository
         run: python tools/build_repo.py
       - name: Validate add-on integration
