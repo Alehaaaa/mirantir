@@ -18,6 +18,8 @@ import zipfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "addons"
                        / "plugin.video.mirantir" / "resources" / "lib"))
 import source
+import palantir_source as discovery
+import catalogue_sync as catalogue
 
 
 def p3encode(sql):
@@ -66,9 +68,9 @@ class CatalogueUpdateTests(unittest.TestCase):
             "UPDATE pelis SET categoria='Español' WHERE tmdb=1;",
             "CREATE INDEX IF NOT EXISTS ix_foo ON pelis(tmdb);",
         ):
-            self.assertEqual(source._decode_up(p3encode(sql)), sql)
+            self.assertEqual(catalogue._decode_up(p3encode(sql)), sql)
         with self.assertRaises(ValueError):
-            source._decode_up(b"broken")
+            catalogue._decode_up(b"broken")
 
     def test_newest_filters_p4u_and_tracks_incremental_commits(self):
         contents = [
@@ -86,14 +88,14 @@ class CatalogueUpdateTests(unittest.TestCase):
                                   side_effect=["2026-11-01T08:00:00",
                                                "2026-11-02T09:00:00",
                                                "2026-11-03T09:00:00"]) as dates:
-            data = source._newest("Owner/DB", preferred_version="3.3.11")
+            data = discovery._newest("Owner/DB", preferred_version="3.3.11")
         self.assertEqual(data["version"], "3.3.11")
         self.assertEqual(data["sha"], "snap")
         self.assertEqual([p["name"] for p in data["patches"]],
                          ["moria_3_3_11.up1", "moria_3_3_11.up2"])
         self.assertEqual(dates.call_count, 3)
         with mock.patch.object(source, "_json", side_effect=[commits, contents]):
-            self.assertIsNone(source._newest("Owner/DB", preferred_version="3.3.12"))
+            self.assertIsNone(discovery._newest("Owner/DB", preferred_version="3.3.12"))
 
     def test_reconstructs_stripped_header_zm3_snapshot(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -216,7 +218,7 @@ class CatalogueUpdateTests(unittest.TestCase):
                 raise IOError("temporary")
             return True
         with mock.patch.object(source.time, "sleep") as sleeper:
-            self.assertTrue(source._retry(attempt))
+            self.assertTrue(catalogue._retry(attempt))
         self.assertEqual(len(calls), 4)
         self.assertEqual([v.args[0] for v in sleeper.call_args_list], [2, 4, 8])
 
@@ -226,7 +228,7 @@ class CatalogueUpdateTests(unittest.TestCase):
             make_db(db)
             state = {"sha": "full-1", "repo": "Example/Catalogue"}
             info = remote_info([patch(1, "stale", "2026-10-31T23:00:00")])
-            rebuild, pending, desired = source._plan(db, state, info)
+            rebuild, pending, desired = catalogue._plan(db, state, info)
             self.assertFalse(rebuild)
             self.assertEqual(pending, [])
             self.assertEqual(desired, [])
