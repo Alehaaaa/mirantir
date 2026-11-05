@@ -25,8 +25,12 @@ UA = "mirantir/1.0"
 
 
 def _json(url):
-    req = urllib.request.Request(url, headers={
-        "User-Agent": UA, "Accept": "application/vnd.github+json"})
+    headers = {"User-Agent": UA, "Accept": "application/vnd.github+json"}
+    # In CI, authenticate only to GitHub itself (never to source.txt mirrors).
+    token = os.environ.get("GITHUB_TOKEN")
+    if token and urllib.parse.urlsplit(url).hostname == "api.github.com":
+        headers["Authorization"] = "Bearer " + token
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=60) as r:
         return json.load(r)
 
