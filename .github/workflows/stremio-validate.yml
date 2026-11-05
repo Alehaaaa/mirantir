@@ -24,9 +24,9 @@ jobs:
       - name: Worker HTTP tests
         working-directory: stremio
         run: npm test
-      - name: Compile catalogue exporter
+      - name: Test D1 catalogue export and SQL activation
         working-directory: stremio
-        run: python -m py_compile scripts/export_catalogue.py
+        run: python -m unittest discover -s test -p 'test_*.py' -v
       - name: Prepare Wrangler local config
         working-directory: stremio
         run: npm run config
