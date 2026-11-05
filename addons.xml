@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addons>
-<addon id="plugin.video.mirantir" name="Mirantir" version="1.2.22" provider-name="aleha">
+<addon id="plugin.video.mirantir" name="Mirantir" version="1.2.23" provider-name="aleha">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
