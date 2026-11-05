@@ -1,0 +1,5 @@
+{
+  "name":"mirantir-stremio","private":true,"version":"0.1.0","type":"module",
+  "scripts":{"test":"node --test test/*.test.js","config":"node scripts/config.mjs","dev":"npm run config && wrangler dev --config wrangler.generated.jsonc","deploy":"node scripts/config.mjs --production && wrangler deploy --config wrangler.generated.jsonc","sync":"python3 scripts/export_catalogue.py --output .data/import && node scripts/import_d1.mjs"},
+  "engines":{"node":">=22"},"devDependencies":{"wrangler":"^4.45.0"}
+}
