@@ -26,6 +26,8 @@ import xml.etree.ElementTree as ET
 # This is the Palantir add-on *distribution index*, not a database address.
 # It can be overridden without editing Mirantir. No DB repo is hardcoded.
 ADDON_REPO_XML = "https://palantir.5g.in/Repo/addons.xml"
+# Public add-on distribution, NOT the catalogue/database repository.
+PALANTIR_RELEASE_REPO = "palantirsource/palantir"
 ADDON_ID = "plugin.video.palantir3"
 ZIP_HEADER = base64.b64decode(
     b"UEsDBBQAAAAIAKJchVngR+RlsfTRAQBwSwUMAAAAc2V0dGluZ3MueG1s")
@@ -130,12 +132,17 @@ def _installed_repo():
         return None
 
 
-def _derive_repo(state):
-    """Read the CURRENT Palantir release, not a historic DB address.
+def _repo_from_zip(data):
+    with zipfile.ZipFile(io.BytesIO(data)) as archive:
+        matches = [n for n in archive.namelist()
+                   if n.endswith("/libs/ioiiIII11.md")]
+        if not matches:
+            raise ValueError("Palantir database module missing from ZIP")
+        return _repo_from_md(archive.read(matches[0]))
 
-    The index tells us the release version. We only download its large ZIP
-    when that version changes; otherwise reuse the source extracted earlier.
-    """
+
+def _repo_from_index(state):
+    """Optional Kodi repository-index bootstrap (also supports custom mirrors)."""
     index = os.environ.get("PALANTIR_ADDON_INDEX_URL") or ADDON_REPO_XML
     xml = _bytes(index)
     root = ET.fromstring(xml)
@@ -149,21 +156,59 @@ def _derive_repo(state):
             and state.get("palantir_repo")):
         return state["palantir_repo"], version, index
 
-    package = ("%s-%s.zip" % (ADDON_ID, version))
-    # Kodi repositories normally put ZIPs in <index dir>/<addon id>/<zip>.
-    # An override supports indexes with a different ZIP distribution layout.
+    package = "%s-%s.zip" % (ADDON_ID, version)
     template = os.environ.get("PALANTIR_ADDON_ZIP_URL")
     url = (template.format(version=version, addon_id=ADDON_ID)
-           if template else urllib.parse.urljoin(
-               index, ADDON_ID + "/" + package))
-    data = _bytes(url)
-    with zipfile.ZipFile(io.BytesIO(data)) as zf:
-        matches = [n for n in zf.namelist()
-                   if n.endswith("/libs/ioiiIII11.md")]
-        if not matches:
-            raise ValueError("Palantir database module missing from ZIP")
-        repo = _repo_from_md(zf.read(matches[0]))
+           if template else urllib.parse.urljoin(index, ADDON_ID + "/" + package))
+    return _repo_from_zip(_bytes(url)), version, index
+
+
+def _repo_from_releases(state):
+    """Follow live public Palantir release ZIPs, not a fixed catalogue URL.
+
+    Use the ZIP blob SHA as the cache key: an add-on may be re-uploaded
+    without incrementing its version. The Github API request is small;
+    the multi-megabyte ZIP is downloaded only if its SHA changes.
+    """
+    source = _normalize_source(
+        os.environ.get("PALANTIR_RELEASE_REPO") or PALANTIR_RELEASE_REPO)
+    if not source:
+        raise ValueError("invalid Palantir release repository")
+    index = _api_base(source) + "/contents"
+    matches = []
+    for item in _json(index):
+        name = item.get("name", "")
+        match = re.fullmatch(r"plugin\.video\.palantir3-(\d+(?:\.\d+)+)\.zip", name)
+        if match and item.get("sha") and item.get("download_url"):
+            matches.append((tuple(map(int, match.group(1).split("."))), item))
+    if not matches:
+        raise ValueError("no Palantir releases published")
+    ver, latest = max(matches, key=lambda entry: entry[0])
+    version = ".".join(map(str, ver))
+    if (state.get("palantir_index") == index
+            and state.get("palantir_version") == version
+            and state.get("palantir_release_sha") == latest["sha"]
+            and state.get("palantir_repo")):
+        return state["palantir_repo"], version, index
+    repo = _repo_from_zip(_bytes(latest["download_url"]))
+    state["palantir_release_sha"] = latest["sha"]
     return repo, version, index
+
+
+def _derive_repo(state):
+    """Prefer Palantir's live GitHub releases to an unverified legacy index.
+
+    Explicit PALANTIR_ADDON_INDEX_URL wins, useful for installations with a
+    custom upstream. Otherwise use public release repository, then legacy
+    repository index as a last resort.
+    """
+    if os.environ.get("PALANTIR_ADDON_INDEX_URL"):
+        return _repo_from_index(state)
+    try:
+        return _repo_from_releases(state)
+    except Exception:
+        return _repo_from_index(state)
+
 
 
 def _file_commit_date(api, filename):
@@ -349,8 +394,16 @@ def rebuild_from_file(zm3_path, db_path, build_indexes=True):
 
 
 def _decode_up(data):
-    """Reverse the exact p3b64decode algorithm used for Palantir .upN SQL."""
+    """Decode Palantir p3b64 .upN or legacy plain-SQL .upN packages.
+
+    Some historical .upN files (e.g. 3.3.4.up2) were plain UTF-8 SQL.
+    Only unambiguously SQL-looking files take that path; otherwise reverse
+    the exact original p3b64decode algorithm.
+    """
     value = urllib.parse.unquote_to_bytes(data).replace(b"?", b"").strip()
+    plain = value.lstrip(b"\xef\xbb\xbf \t\r\n")
+    if re.match(rb"(?i)(?:INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|REPLACE|BEGIN|WITH)\s", plain):
+        return plain.decode("utf-8")
     padding = (-len(value)) % 4
     quarter = (len(value) + padding) // 4
     encoded = value[:quarter][::-1] + value[quarter:][::-1] + b"=" * padding
@@ -361,6 +414,7 @@ def _decode_up(data):
     if len(sql.strip()) <= 10:
         raise ValueError("Palantir incremental update has no SQL")
     return sql
+
 
 
 def _db_metadata(db_path):
