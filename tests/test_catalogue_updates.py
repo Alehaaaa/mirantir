@@ -112,7 +112,7 @@ class CatalogueUpdateTests(unittest.TestCase):
             zm3 = Path(tmp, "file.zm3")
             zm3.write_bytes(catalogue.ZIP_HEADER + compressed[42:])
             dest = str(Path(tmp, "restored.sqlite"))
-            self.assertEqual(source.rebuild_from_file(str(zm3), dest),
+            self.assertEqual(catalogue.rebuild_from_file(str(zm3), dest),
                              os.stat(dest).st_size)
             self.assertEqual(rows(dest), [(1,)])
 
