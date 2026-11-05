@@ -90,6 +90,40 @@ def main():
         plain = timed("Decode real archived plaintext Palantir .up2",
                       lambda: catalogue._decode_up(discovery._bytes(plain_url)))
         assert plain.startswith("INSERT OR REPLACE INTO version"), plain[:120]
+        # Apply an ACTUAL archived .up1 to its corresponding historical .zm3,
+        # not to today's snapshot (which already incorporates that patch).
+        old_base = ("https://raw.githubusercontent.com/Maniac2017/Mipal2025/"
+                    "582da8980fb6/")
+        historical = {
+            "name": "moria_3_3_11.zm3",
+            "url": old_base + "moria_3_3_11.zm3",
+            "sha": "historical-snapshot-582da8980fb6",
+            "repo": "Maniac2017/Mipal2025",
+            "commit": "2026-08-08T15:45:55Z",
+            "snapshot_date": "2026-08-07T16:08:51",
+            "patches": [{
+                "name": "moria_3_3_11.up1",
+                "url": old_base + "moria_3_3_11.up1",
+                "sha": "historical-up1-582da8980fb6",
+                "number": 1,
+                "date": "2026-08-08T15:45:55",
+            }],
+        }
+        history_db = str(Path(folder, "historical.cm3"))
+        history_state = str(Path(folder, "historical.json"))
+        changed, details = timed(
+            "Historical .zm3 restore followed by real .up1 SQL application",
+            lambda: source.sync(history_db, history_state, info=historical))
+        assert changed and details["applied_patches"] == [
+            "moria_3_3_11.up1"
+        ], details
+        assert not source.update_required(history_db, history_state, historical)
+        with sqlite3.connect(history_db) as conn:
+            row = conn.execute(
+                "SELECT titulo FROM pelis WHERE tmdb=1368337").fetchone()
+            assert row is not None, "historical incremental record missing"
+        print("Historical full+incremental migration passed", flush=True)
+
         print("Live Palantir catalogue smoke test passed", flush=True)
 
 
