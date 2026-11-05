@@ -400,10 +400,11 @@ def _decode_up(data):
     Only unambiguously SQL-looking files take that path; otherwise reverse
     the exact original p3b64decode algorithm.
     """
-    value = urllib.parse.unquote_to_bytes(data).replace(b"?", b"").strip()
-    plain = value.lstrip(b"\xef\xbb\xbf \t\r\n")
+    raw = urllib.parse.unquote_to_bytes(data).strip()
+    plain = raw.lstrip(b"\xef\xbb\xbf \t\r\n")
     if re.match(rb"(?i)(?:INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|REPLACE|BEGIN|WITH)\s", plain):
         return plain.decode("utf-8")
+    value = raw.replace(b"?", b"")
     padding = (-len(value)) % 4
     quarter = (len(value) + padding) // 4
     encoded = value[:quarter][::-1] + value[quarter:][::-1] + b"=" * padding
