@@ -51,11 +51,12 @@ a small D1 state query and Git metadata check; the large database download,
 SQL export and D1 writes run only when the snapshot or patch hashes change.
 The validation workflow performs Worker tests and a Wrangler dry run on pull requests.
 
-The workflow also enforces a conservative 90,000 indexed-row write budget for
-the Free plan. If a changed source would exceed it, the import stops before the
-first D1 write and continues serving the last complete generation. Full
-catalogue rebuilds require Workers Paid; raise or remove `D1_WRITE_BUDGET` only
-after upgrading the Cloudflare account.
+The workflow retains a verified copy of the upstream SQLite database in GitHub
+Actions cache. Changed snapshots and patches are diffed against that copy, so
+only changed titles, episodes and complete link groups are written to D1. Delta
+files are capped and resumable, with a conservative 90,000 indexed-row daily
+write budget for the Free plan. Oversized updates continue automatically on
+the next daily run instead of exhausting the account quota.
 
 This feature branch does not deploy automatically.
 
@@ -88,9 +89,9 @@ Identifiers: mirantir:movie:<tmdb>, mirantir:series:<tmdb>,
 and mirantir:series:<tmdb>:<season>:<episode> for episode streams.
 Catalogues support search and skip extras.
 
-D1 import only switches active_generation after successful staging and retains
-the previous generation for rollback. Generations older than that are pruned
-after activation so storage cannot grow without bound.
+D1's initial full import uses atomic generation activation. Subsequent source
+updates are idempotent deltas against the verified cached source database; the
+source generation marker advances only after every delta chunk succeeds.
 Public catalogue and metadata responses share a ten-minute edge cache,
 including requests made through configured installation URLs; stream responses
 and configuration data are never cached.
