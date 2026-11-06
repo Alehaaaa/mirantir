@@ -51,6 +51,12 @@ a small D1 state query and Git metadata check; the large database download,
 SQL export and D1 writes run only when the snapshot or patch hashes change.
 The validation workflow performs Worker tests and a Wrangler dry run on pull requests.
 
+The workflow also enforces a conservative 90,000 indexed-row write budget for
+the Free plan. If a changed source would exceed it, the import stops before the
+first D1 write and continues serving the last complete generation. Full
+catalogue rebuilds require Workers Paid; raise or remove `D1_WRITE_BUDGET` only
+after upgrading the Cloudflare account.
+
 This feature branch does not deploy automatically.
 
 ## Development
@@ -85,6 +91,9 @@ Catalogues support search and skip extras.
 D1 import only switches active_generation after successful staging and retains
 the previous generation for rollback. Generations older than that are pruned
 after activation so storage cannot grow without bound.
+Public catalogue and metadata responses share a ten-minute edge cache,
+including requests made through configured installation URLs; stream responses
+and configuration data are never cached.
 The Worker does not proxy videos, store user API keys, or parse unsupported
 .p4u files. Actual Cloudflare deployment and live debrid playback still require
 account-level verification.

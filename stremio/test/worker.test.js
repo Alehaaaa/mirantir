@@ -86,6 +86,27 @@ test('movies and search use local D1 SQL and parameter binding',async()=>{
  assert.equal(result.metas[0].id,'mirantir:movie:123');
  assert.deepEqual(database.queries.find(x=>x.sql.includes('LIKE')).args,['gen1','movie','%Alien%',40]);
 });
+test('catalogue cache is shared without exposing configured tokens',async()=>{
+ const oldCaches=globalThis.caches;const entries=new Map();
+ globalThis.caches={default:{
+  async match(key){return entries.get(String(key))?.clone()},
+  async put(key,value){entries.set(String(key),value.clone())}
+ }};
+ try{
+  const database=db();const waits=[];const context={waitUntil(p){waits.push(p)}};
+  const token=await seal({provider:'rd',apiKey:'private-key'},secret);
+  const first=await worker.fetch(request('/catalog/movie/mirantir-movies.json'),{DB:database},context);
+  await Promise.all(waits);
+  const before=database.queries.length;
+  const second=await worker.fetch(request('/c/'+token+'/catalog/movie/mirantir-movies.json'),
+   {DB:database,CONFIG_KEY:secret},context);
+  assert.equal(second.status,200);
+  assert.equal(database.queries.length,before);
+  assert.equal(entries.size,1);
+  assert.equal(first.headers.get('Cache-Control'),'public, max-age=120, s-maxage=600');
+  assert(![...entries.keys()][0].includes(token));
+ }finally{globalThis.caches=oldCaches}
+});
 test('meta, series IDs and empty unconfigured streams',async()=>{
  const database=db();
  assert.deepEqual(parseId('mirantir:series:456:1:2','series'),

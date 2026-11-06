@@ -5,6 +5,12 @@ const folder=resolve(process.env.CATALOGUE_EXPORT_DIR||'.data/import');
 const manifest=JSON.parse(await readFile(folder+'/manifest.json','utf8'));
 if(!/^[a-f0-9]{24}$/.test(manifest.generation)||!manifest.counts.catalogue_items)
  throw new Error('Missing or invalid export generation');
+const estimatedWrites=manifest.counts.catalogue_items*4+
+ manifest.counts.catalogue_episodes*2+manifest.counts.catalogue_links*3;
+const writeBudget=Number(process.env.D1_WRITE_BUDGET||Infinity);
+if(Number.isFinite(writeBudget)&&estimatedWrites>writeBudget)
+ throw new Error(`Import needs up to ${estimatedWrites.toLocaleString()} indexed row writes, `+
+  `above the configured ${writeBudget.toLocaleString()} safety budget; live catalogue left unchanged`);
 const files=(await readdir(folder)).filter(x=>/^\d{4}-(reset|data|activate)\.sql$/.test(x)).sort();
 if(files[0]!=='0000-reset.sql'||files.at(-1)!=='9999-activate.sql'||files.length<3)
  throw new Error('Incomplete staging export');

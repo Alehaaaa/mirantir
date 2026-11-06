@@ -15,6 +15,22 @@ function json(data,status=200,privateData=false){
   'Content-Type':'application/json; charset=utf-8',
   'Cache-Control':privateData?'no-store':'public, max-age=120'}});
 }
+async function cachedPublic(request,ctx,pathname,load){
+ const cache=globalThis.caches?.default;
+ if(!cache)return load();
+ const key=new URL(request.url);key.pathname=pathname;
+ let hit;
+ try{hit=await cache.match(key.toString())}catch{return load()}
+ if(hit)return hit;
+ const response=await load();
+ if(response.ok){
+  const stored=new Response(response.body,response);
+  stored.headers.set('Cache-Control','public, max-age=120, s-maxage=600');
+  ctx?.waitUntil(cache.put(key.toString(),stored.clone()));
+  return stored;
+ }
+ return response;
+}
 function html(content,status=200,nonce=''){
  return new Response(content,{status,headers:{...HEADERS,
   'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store',
@@ -72,7 +88,7 @@ async function configure(request,env,currentProfile=null){
   '<script nonce="'+nonce+'">const b=document.querySelector("#copyLink"),u=document.querySelector("#manifestUrl").textContent;b.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(u);b.textContent="Copied ✓"}catch{const r=document.createRange();r.selectNodeContents(document.querySelector("#manifestUrl"));getSelection().removeAllRanges();getSelection().addRange(r);b.textContent="Select and copy"}setTimeout(()=>b.textContent="Copy link",1800)})</script>'),200,nonce);
 }
 export default {
- async fetch(request,env){
+ async fetch(request,env,ctx){
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:HEADERS});
   try{
    const url=new URL(request.url);
@@ -118,11 +134,15 @@ export default {
    if(resource==='catalog'&&(parts.length===3||parts.length===4)){
     const id=parts[2].replace(/\.json$/,'');
     const extra=parts.length===4?last.slice(0,-5):'';
-    return json(await getCatalog(env.DB,type,id,extras(extra,url.searchParams)),200,configured);
+    const cachePath='/catalog/'+type+'/'+id+'.json'+(extra?'/'+extra+'.json':'');
+    return cachedPublic(request,ctx,cachePath,async()=>
+     json(await getCatalog(env.DB,type,id,extras(extra,url.searchParams)),200,false));
    }
    if(parts.length!==3)return json({error:'Not found'},404,configured);
    const id=decodeURIComponent(last.slice(0,-5));
-   if(resource==='meta')return json(await getMeta(env.DB,type,id),200,configured);
+   if(resource==='meta')return cachedPublic(request,ctx,
+    '/meta/'+type+'/'+encodeURIComponent(id)+'.json',async()=>
+     json(await getMeta(env.DB,type,id),200,false));
    if(resource==='stream')return json(await getStreams(env.DB,type,id,profile),200,true);
    return json({error:'Not found'},404,configured);
   }catch{

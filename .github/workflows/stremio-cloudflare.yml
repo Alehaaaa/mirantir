@@ -52,6 +52,8 @@ jobs:
       CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
       CF_D1_DATABASE_ID: "${{ secrets.CF_D1_DATABASE_ID }}"
       GITHUB_TOKEN: "${{ github.token }}"
+      # Free D1 allows 100k writes/day. Leave headroom for indexes and account use.
+      D1_WRITE_BUDGET: "90000"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
